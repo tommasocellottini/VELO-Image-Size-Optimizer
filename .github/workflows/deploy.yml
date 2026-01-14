@@ -14,19 +14,21 @@ jobs:
           dotnet-version: 7.0.x
 
       - name: Install WASM Tools
-        # Installiamo esplicitamente la versione 7 dei tool
         run: dotnet workload install wasm-tools-net7
 
       - name: Restore Workloads
-        # Questo è il comando specifico suggerito dall'errore
         run: dotnet workload restore
 
       - name: Publish
         run: dotnet publish -c Release -o output
 
-      - name: Fix paths
+      - name: Fix paths and Integrity
         run: |
+          # Sistema il base href
           sed -i 's/<base href="\/" \/>/<base href="\/VELO-Image-Size-Optimizer\/" \/>/g' output/wwwroot/index.html
+          # Rimuove i controlli di integrità per evitare l'errore SRI
+          sed -i 's/integrity="[^"]*"//g' output/wwwroot/_framework/blazor.boot.json
+          # Fix per 404 e Jekyll
           cp output/wwwroot/index.html output/wwwroot/404.html
           touch output/wwwroot/.nojekyll
 
