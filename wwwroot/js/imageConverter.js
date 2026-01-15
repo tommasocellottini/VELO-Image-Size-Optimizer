@@ -460,7 +460,6 @@ window.imageConverter = {
                                         lastErr = repErr;
                                         // prosegui con altri fallback
                                     }
-                                }
                             } catch (repairErr) {
                                 lastErr = repairErr;
                             }
