@@ -53,6 +53,45 @@
             }
         </div>
     }
+
+    <hr />
+    <div class="velo-card mt-4">
+        <h4>Convertitore immagini (JPEG,PNG,HEIC,TIFF,WEBP,AVIF,BMP,MPO,ICO,XBM,PJP,PDN → PNG,JPEG,WEBP,AVIF,BMP,TIFF,PDN)</h4>
+        <p>Seleziona un file e premi <strong>Converti</strong>.</p>
+
+        <div class="mb-3">
+            <input id="imageConverterInput" type="file" accept="image/*,.mpo,.psd,.tif,.tiff,.exr,.xcf,.kra,.pdn" class="form-control" />
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-6">
+                <select class="form-select" @bind="selectedOutputFormat">
+                    <option value="image/png">PNG</option>
+                    <option value="image/jpeg">JPEG</option>
+                    <option value="image/webp">WEBP</option>
+                    <option value="image/avif">AVIF</option>
+                    <option value="image/bmp">BMP</option>
+                    <option value="image/tiff">TIFF</option>
+                    <option value="image/x-icon">ICO</option>
+                    <option value="application/x-pdn">PDN</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <button class="btn btn-primary w-100" @onclick="ConvertImageMain">Converti</button>
+            </div>
+        </div>
+
+        <div class="row mb-3 align-items-center">
+            <div class="col-9">
+                <input type="range" min="10" max="100" step="1" class="form-range" @bind="qualityPercent" />
+            </div>
+            <div class="col-3">
+                <div class="small text-muted">Qualità: @qualityPercent%</div>
+            </div>
+        </div>
+
+        <div class="text-muted">@imageConverterStatus</div>
+    </div>
 </div>
 
 @code {
@@ -99,6 +138,29 @@ private async Task StartConversion()
         pendingFiles.Clear();
         isProcessing = false;
         StateHasChanged();
+    }
+
+    private string imageConverterStatus = string.Empty;
+    private string selectedOutputFormat = "image/png";
+    private int qualityPercent =100;
+
+    private async Task ConvertImageMain()
+    {
+        imageConverterStatus = "Conversione in corso...";
+        try
+        {
+            var quality = Math.Clamp(qualityPercent / 100.0, 0.1, 1.0);
+            await JS.InvokeVoidAsync("imageConverterLoader.ensureAndConvert", "imageConverterInput", selectedOutputFormat, quality);
+            imageConverterStatus = "Conversione completata. Il download dovrebbe essere iniziato automaticamente.";
+        }
+        catch (JSException jsEx)
+        {
+            imageConverterStatus = "Errore JS: " + jsEx.Message;
+        }
+        catch (Exception ex)
+        {
+            imageConverterStatus = "Errore: " + ex.Message;
+        }
     }
 
     public class FileEntry {
