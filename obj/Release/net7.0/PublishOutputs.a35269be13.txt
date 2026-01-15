@@ -1,1 +1,0 @@
-C:\Users\admin\Velo\bin\Release\net7.0\publish\web.config
