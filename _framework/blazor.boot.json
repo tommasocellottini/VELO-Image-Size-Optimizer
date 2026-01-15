@@ -1,10 +1,10 @@
 {
   "entryAssembly": "Velo",
   "resources": {
-    "hash": "sha256-YfyjEDTogMCs+O9wsvqJFjDxl/ghVhR6HbKl+nZB11s=",
+    "hash": "sha256-JRIa0nd7ic++1GB/WYq7M9cQm/sOiy0Pw5xuZMbQKWI=",
     "runtime": {
       "dotnet.js": "sha256-OzIGUpz/E+kYwvIiyQ+AJP4PsA5BhKmo9Yn5EXBIoHQ=",
-      "dotnet.wasm": "sha256-xGdceFAtQ2Hn1Lv1XXH19zVNvXJrlVkS5lnNvmIfzAM=",
+      "dotnet.wasm": "sha256-Kpqy2Ji+FGe512ALvsbOAilWca0KvNit07ITSpkdCAs=",
       "dotnet.timezones.blat": "sha256-gbATD5HDsHYtW8vdPYh9iSBY4O5CjvMeCSF5xXWF1xo=",
       "icudt_CJK.dat": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
       "icudt_EFIGS.dat": "sha256-8fItetYY8kQ0ww6oxwTLiT3oXlBwHKumbeP2pRF4yTc=",
@@ -39,7 +39,7 @@
       "System.Text.Encodings.Web.dll": "sha256-lFKuTdK7dtov2eQtRGzxU/SvD4yA7ybK4oD2lzMl77g=",
       "System.Text.Json.dll": "sha256-DE3tkWjcW3FVVOv/avneBBzt4LkEhIPWKm7FwU+jfrY=",
       "System.Private.CoreLib.dll": "sha256-kZy3nRRGcqks1ZWQB273oCtD98o15vkF1Om9Bb+VWkA=",
-      "Velo.dll": "sha256-rp7RDATIkZUIaaLP/3x6MjbLNrwzSgMiU5T3osXkjdU="
+      "Velo.dll": "sha256-TzwYsvKo3tDlFLzD/e827Z9ADhEdpQUl6s7p1PyxT6Q="
     },
     "runtimeAssets": {
       "dotnet.wasm": {
