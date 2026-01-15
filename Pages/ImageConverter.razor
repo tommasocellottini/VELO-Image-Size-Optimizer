@@ -1,0 +1,38 @@
+@page "/image-converter"
+@inject IJSRuntime JS
+
+<h3>Convertitore immagini (JPEG,PNG,HEIC,TIFF,WEBP,AVIF,BMP,MPO,ICO,XBM,PJP → PNG,JPEG,WEBP,AVIF,BMP,TIFF)</h3>
+
+<p>Seleziona un file e premi <strong>Converti</strong>.</p>
+
+<div class="mb-3">
+    <input id="jpegInput" type="file" accept="image/jpeg" />
+</div>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="Convert">Converti in PNG</button>
+</div>
+
+<div>@statusMessage</div>
+
+@code {
+    private string statusMessage = string.Empty;
+
+    private async Task Convert()
+    {
+        statusMessage = "Conversione in corso...";
+        try
+        {
+            await JS.InvokeVoidAsync("imageConverter.convert", "jpegInput");
+            statusMessage = "Conversione completata. Il download dovrebbe essere iniziato automaticamente.";
+        }
+        catch (JSException jsEx)
+        {
+            statusMessage = "Errore JS: " + jsEx.Message;
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "Errore: " + ex.Message;
+        }
+    }
+}
