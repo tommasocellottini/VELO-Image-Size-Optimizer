@@ -155,3 +155,74 @@ a, .btn-link {
 .LogoDescription{
     font-size: 1.5rem;
 }
+
+.drag-drop-zone {
+    border: 3px dashed #007bff;
+    padding: 40px;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 15px;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.3s;
+}
+
+.drag-drop-zone:hover {
+    background-color: #e9ecef;
+}
+
+.file-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.badge-velo-420 {
+    background-color: #064e3b !important; /* Verde foresta profondo */
+    color: #ffffff !important;
+    border: 1px solid #10b981; /* Bordo verde smeraldo brillante */
+    padding: 0.35em 0.65em;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+}
+
+.btn-info {
+    background-color: #0dcaf0 !important;
+    color: #000 !important; /* Testo nero su fondo azzurro per massima leggibilità */
+}
+
+/* Nasconde il testo nativo del browser */
+.velo-input-english {
+    color: transparent !important;
+}
+
+/* Inserisce il testo inglese personalizzato */
+.velo-input-english::before {
+    content: 'Select files';
+    color: #a0aec0; /* Grigio chiaro come il resto della UI */
+    display: inline-block;
+    margin-right: 10px;
+}
+
+/* Stilizza il tasto "Scegli file" in inglese */
+.velo-input-english::file-selector-button {
+    content: 'Browse'; /* Alcuni browser permettono la sostituzione */
+    background-color: #2d3748;
+    color: white;
+    border: 1px solid #4a5568;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+
+.velo-input-english::file-selector-button:hover {
+    background-color: #10b981;
+    border-color: #10b981;
+    cursor: pointer;
+}
