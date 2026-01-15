@@ -1,5 +1,5 @@
 ﻿@page "/"
-
+@using Velo.Classes
 @inject IJSRuntime JS
 
 <div class="velo-card">
@@ -9,45 +9,60 @@
         <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple class="form-control" />
     </div>
 
-    @if (pendingFiles.Any() && !isProcessing)
+    @if (pendingFiles.Any())
     {
         <div class="pending-list mb-3">
-            <h5 class="text-muted small uppercase">File in coda (@pendingFiles.Count)</h5>
+            <h5 class="text-muted small uppercase">Selected Files (@pendingFiles.Count)</h5>
             @foreach (var file in pendingFiles)
             {
                 <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-dark text-white border border-secondary rounded">
-                    <span class="text-truncate" style="max-width: 60%;">@file.Name</span>
+                    <span class="text-truncate" style="max-width: 50%;">@file.Name</span>
                     <div class="d-flex align-items-center">
+                        @if (file.Is420)
+                        {
+                            <span class="badge badge-velo-420 me-2">
+                                YCbCrRatio420
+                            </span>
+                        }
                         <small class="me-3 text-muted">@(file.Size / 1024) KB</small>
-                        <button class="btn btn-sm btn-outline-danger" style="width:28px" @onclick="() => RemoveFile(file)">✕</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveFile(file)">✕</button>
                     </div>
                 </div>
             }
-            <button class="btn btn-primary w-100 mt-3" @onclick="StartConversion">Ottimizza Tutto</button>
+            <button class="btn btn-primary w-100 mt-3" @onclick="StartConversion">Optimize All</button>
         </div>
     }
 
-    @if (isProcessing)
+    @* @if (isProcessing)
     {
         <div class="progress mb-3" style="height: 10px;">
             <div class="progress-bar progress-bar-animated bg-info" style="width: @(progressPercentage)%"></div>
         </div>
-    }
+    } *@
 
     @if (results.Any())
     {
-        <div class="results-list mb-3">
-            <h5 class="text-muted small uppercase">File ottimizzati</h5>
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-end mb-3 border-bottom border-secondary pb-2">
+                <h4 class="mb-0 text-white">Optimized Files</h4>
+                
+                @if (results.Count > 1)
+                {
+                    <button class="btn btn-success btn-sm fw-bold px-3 shadow" @onclick="DownloadZip">
+                        📦 Download All (@results.Count) .ZIP
+                    </button>
+                }
+            </div>
+
             @foreach (var res in results)
             {
-                <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-dark text-white border border-success rounded">
-                    <span class="text-truncate" style="max-width: 60%;">@res.FileName</span>
-                    <div class="d-flex align-items-center">
-                        <small class="me-3">
-                            <span class="text-muted">@res.CompressedSize KB</span> 
-                            <span class="text-success ms-1">(-@res.Savings%)</span>
-                        </small>
-                        <a href="@res.Url" download="Velo_@res.FileName" class="btn btn-sm btn-success">Download</a>
+                <div class="card bg-dark border-success mb-2">
+                    <div class="card-body d-flex justify-content-between align-items-center py-2">
+                        <span class="text-white-50 text-truncate">@res.FileName</span>
+                        <div>
+                            <span class="badge bg-success me-3">-@res.Savings%</span>
+                            <a href="@res.Url" download="@res.FileName" class="btn btn-sm btn-success">Download</a>
+                        </div>
                     </div>
                 </div>
             }
@@ -64,48 +79,81 @@
 
     private async Task OnFilesSelected(ChangeEventArgs e)
     {
+        // Recupera la lista aggiornata da JS
         var newFiles = await JS.InvokeAsync<List<FileEntry>>("getSelectedFilesInfo", fileInputRef);
-        pendingFiles.AddRange(newFiles); // Aggiunge alla lista esistente
+        
+        // Aggiungi alla lista esistente (così non perdi i file precedenti)
+        pendingFiles.AddRange(newFiles); 
+        
         results.Clear();
         StateHasChanged();
     }
 
-private async Task RemoveFile(FileEntry file)
+    private async Task RemoveFile(FileEntry file)
     {
         pendingFiles.Remove(file);
-        await JS.InvokeVoidAsync("removeFromCache", file.InternalId);
+        await JS.InvokeVoidAsync("removeFromCache", file.FileId);
     }
 
-private async Task StartConversion()
+    private async Task StartConversion()
     {
         if (!pendingFiles.Any()) return;
         isProcessing = true;
         StateHasChanged();
 
-        foreach (var file in pendingFiles)
-        {
-            // Passiamo l'ID unico, non più l'indice o il riferimento all'input
-            var nativeRes = await JS.InvokeAsync<NativeResult>("compressNativeVelo", file.InternalId, 75);
+        var filesToProcess = pendingFiles.ToList();
 
-            results.Add(new VeloProcessedResult {
-                FileName = nativeRes.FileName,
-                Url = nativeRes.Url,
-                CompressedSize = nativeRes.Data.Length / 1024,
-                Savings = Math.Round(100 - ((double)nativeRes.Data.Length / nativeRes.OrigSize * 100), 1)
-            });
+        foreach (var file in filesToProcess)
+        {
+            try 
+            {
+                var nativeRes = await JS.InvokeAsync<NativeResult>("compressNativeVelo", file.FileId, 75);
+
+                results.Add(new VeloProcessedResult {
+                    FileName = nativeRes.FileName,
+                    Url = nativeRes.Url,
+                    Data = nativeRes.Data, // <--- Verifica che questo campo NON sia null o vuoto qui!
+                    CompressedSize = nativeRes.Data.Length / 1024,
+                    Savings = Math.Round(100 - ((double)nativeRes.Data.Length / nativeRes.OrigSize * 100), 1)
+                });
+
+                //pendingFiles.Remove(file);
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errore su {file.Name}: {ex.Message}");
+            }
         }
 
-        await JS.InvokeVoidAsync("clearVeloCache");
-        pendingFiles.Clear();
         isProcessing = false;
         StateHasChanged();
     }
 
+    private async Task DownloadZip()
+    {
+        // Trasformiamo i risultati in un formato leggero e sicuro (Base64)
+        var zipPayload = results.Select(r => new {
+            fileName = r.FileName,
+            data = Convert.ToBase64String(r.Data) // Trasforma i byte in stringa sicura
+        }).ToList();
+
+        var json = System.Text.Json.JsonSerializer.Serialize(zipPayload);
+        await JS.InvokeVoidAsync("downloadAsZip", json);
+    }
+
+
     public class FileEntry {
         public string Name { get; set; } = "";
         public long Size { get; set; }
-        public double InternalId { get; set; } // Identificatore unico per la cache JS
+        
+        [System.Text.Json.Serialization.JsonPropertyName("fileId")]
+        public string FileId { get; set; } = ""; // Nome nuovo e tipo string
+        
+        [System.Text.Json.Serialization.JsonPropertyName("is420")]
+        public bool Is420 { get; set; }
     }
+
     public class NativeResult {
         public byte[] Data { get; set; } = Array.Empty<byte>();
         public string Url { get; set; } = "";
@@ -116,8 +164,8 @@ private async Task StartConversion()
     public class VeloProcessedResult {
         public string FileName { get; set; } = "";
         public string Url { get; set; } = "";
+        public byte[] Data { get; set; }
         public long CompressedSize { get; set; }
         public double Savings { get; set; }
     }
-    
 }

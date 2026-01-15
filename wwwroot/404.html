@@ -8,7 +8,8 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Velo</title>
-    <base href="/VELO-Image-Size-Optimizer/" />
+    <base href="/" />
+    <!-- <base href="/VELO-Image-Size-Optimizer/" /> -->
     <link
         href="css/bootstrap/bootstrap.min.css"
         rel="stylesheet"
@@ -26,8 +27,10 @@
         href="Velo.styles.css"
         rel="stylesheet"
     />
-
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400&display=swap"
+        rel="stylesheet"
+    >
 </head>
 
 <body>
@@ -53,28 +56,30 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
-    
     <script>
         // Magazzino temporaneo per i file
         let veloFileCache = [];
 
-        window.getSelectedFilesInfo = (element) => {
-            const newFiles = Array.from(element.files);
+        window.getSelectedFilesInfo = async (inputElement) => {
+            const files = inputElement.files;
             const info = [];
 
-            newFiles.forEach(file => {
-                // Salviamo il file reale nella cache
-                const fileId = Date.now() + Math.random();
-                veloFileCache.push({ id: fileId, file: file });
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                // Generiamo l'ID come stringa univoca
+                const id = "ID_" + Date.now() + "_" + i;
+
+                if (!window.veloFileCache) window.veloFileCache = {};
+                window.veloFileCache[id] = file;
 
                 info.push({
                     name: file.name,
                     size: file.size,
-                    internalId: fileId // Usiamo questo ID invece dell'indice
+                    internalId: id, 
+                    is420: false
                 });
-            });
-
-            element.value = ''; // Reset immediato dell'input
+            }
             return info;
         };
 
