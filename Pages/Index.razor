@@ -3,69 +3,80 @@
 @inject IJSRuntime JS
 
 <div class="velo-card">
-    <h2 class="text-center"><span class="LogoFont">VELO  </span> <span class="LogoDescription">Image Size Optimizer</span></h2>
+    <h2 class="text-center mb-4"><span class="LogoFont">VELO </span> <span class="LogoDescription">Image Size
+            Optimizer</span></h2>
 
-    <div class="upload-zone mb-3">
-        <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple class="form-control" />
+    <div class="upload-zone mb-4">
+        <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple
+            class="form-control" />
     </div>
 
     @if (pendingFiles.Any())
     {
-        <div class="pending-list mb-3">
-            <h5 class="text-muted small uppercase">Selected Files (@pendingFiles.Count)</h5>
-            @foreach (var file in pendingFiles)
-            {
-                <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-dark text-white border border-secondary rounded">
-                    <span class="text-truncate" style="max-width: 50%;">@file.Name</span>
-                    <div class="d-flex align-items-center">
-                        @if (file.Is420)
-                        {
-                            <span class="badge badge-velo-420 me-2">
-                                YCbCrRatio420
-                            </span>
-                        }
-                        <small class="me-3 text-muted">@(file.Size / 1024) KB</small>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveFile(file)">✕</button>
-                    </div>
-                </div>
-            }
-            <button class="btn btn-primary w-100 mt-3" @onclick="StartConversion">Optimize All</button>
-        </div>
-    }
-
-    @* @if (isProcessing)
-    {
-        <div class="progress mb-3" style="height: 10px;">
-            <div class="progress-bar progress-bar-animated bg-info" style="width: @(progressPercentage)%"></div>
-        </div>
-    } *@
-
-    @if (results.Any())
-    {
-        <div class="mt-4">
-            <div class="d-flex justify-content-between align-items-end mb-3 border-bottom border-secondary pb-2">
-                <h4 class="mb-0 text-white">Optimized Files</h4>
-                
-                @if (results.Count > 1)
+        <div class="file-manager">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-muted small uppercase mb-0">Files (@pendingFiles.Count)</h5>
+                @if (pendingFiles.Any(f => f.Data != null))
                 {
-                    <button class="btn btn-success btn-sm fw-bold px-3 shadow" @onclick="DownloadZip">
-                        📦 Download All (@results.Count) .ZIP
+                    <button class="btn btn-success btn-sm shadow" @onclick="DownloadZip">
+                        📦 Download All .ZIP
                     </button>
                 }
             </div>
 
-            @foreach (var res in results)
+            @foreach (var file in pendingFiles)
             {
-                <div class="card bg-dark border-success mb-2">
-                    <div class="card-body d-flex justify-content-between align-items-center py-2">
-                        <span class="text-white-50 text-truncate">@res.FileName</span>
-                        <div>
-                            <span class="badge bg-success me-3">-@res.Savings%</span>
-                            <a href="@res.Url" download="@res.FileName" class="btn btn-sm btn-success">Download</a>
+                <div
+                    class="file-row p-3 mb-2 bg-dark border @(file.Data != null ? "border-success" : "border-secondary") rounded shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="text-truncate" style="max-width: 65%;">
+                            <span class="text-white fw-bold">@file.Name</span>
+                            <div class="d-flex gap-2 mt-1">
+                                <small class="text-muted">Orig: @(file.Size / 1024) KB</small>
+                                @if (file.CompressedSize.HasValue)
+                                {
+                                    <small class="text-success fw-bold">Final: @file.CompressedSize KB</small>
+                                    <span class="badge bg-success text-dark" style="font-size: 0.7rem;">-@file.Savings%</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            @* TASTO RESET QUALITÀ *@
+                            <button class="btn btn-sm btn-outline-info border-0" title="Reset Quality to 75%"
+                                @onclick="() => ResetQuality(file)">
+                                <span style="font-size: 1.1rem;">⟳</span>
+                            </button>
+
+                            @* TASTO CANCELLA *@
+                            <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => RemoveFile(file)">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row align-items-center g-2 mt-2 border-top border-secondary pt-2">
+                        <div class="col">
+                            <input type="range" class="form-range" min="1" max="100" @bind="file.Quality"
+                                @bind:event="oninput" />
+                        </div>
+                        <div class="col-auto">
+                            <span class="badge bg-primary">Q: @file.Quality%</span>
+                        </div>
+                        <div class="col-auto">
+                            @if (file.Url != null)
+                            {
+                                <a href="@file.Url" download="@file.Name" class="btn btn-sm btn-success">Download</a>
+                            }
                         </div>
                     </div>
                 </div>
             }
+
+            <button class="btn btn-primary w-100 py-3 fw-bold mt-3 shadow-lg" @onclick="StartConversion"
+                disabled="@isProcessing">
+                @(isProcessing ? "RE-OPTIMIZING..." : "FORCE RE-OPTIMIZE ALL")
+            </button>
         </div>
     }
 </div>
@@ -74,19 +85,54 @@
     private bool isProcessing = false;
     private ElementReference fileInputRef;
     private List<FileEntry> pendingFiles = new();
-    private List<VeloProcessedResult> results = new();
-    private double progressPercentage = 0;
 
     private async Task OnFilesSelected(ChangeEventArgs e)
     {
-        // Recupera la lista aggiornata da JS
         var newFiles = await JS.InvokeAsync<List<FileEntry>>("getSelectedFilesInfo", fileInputRef);
-        
-        // Aggiungi alla lista esistente (così non perdi i file precedenti)
-        pendingFiles.AddRange(newFiles); 
-        
-        results.Clear();
+
+        foreach (var file in newFiles)
+        {
+            // Impostiamo la qualità di default per il caricamento
+            file.Quality = 75;
+            pendingFiles.Add(file);
+
+            // OTTIMIZZAZIONE IMMEDIATA AL CARICAMENTO
+            await OptimizeSingleFile(file);
+        }
+
         StateHasChanged();
+    }
+
+    private async Task StartConversion()
+    {
+        if (!pendingFiles.Any()) return;
+        isProcessing = true;
+
+        foreach (var file in pendingFiles)
+        {
+            await OptimizeSingleFile(file);
+        }
+
+        isProcessing = false;
+        StateHasChanged();
+    }
+
+    private async Task OptimizeSingleFile(FileEntry file)
+    {
+        try
+        {
+            var res = await JS.InvokeAsync<NativeResult>("compressNativeVelo", file.FileId, file.Quality);
+
+            file.Url = res.Url;
+            file.Data = res.Data;
+            file.CompressedSize = res.Data.Length / 1024;
+            file.Savings = Math.Round(100 - ((double)res.Data.Length / res.OrigSize * 100), 1);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Errore su {file.Name}: {ex.Message}");
+        }
     }
 
     private async Task RemoveFile(FileEntry file)
@@ -95,77 +141,26 @@
         await JS.InvokeVoidAsync("removeFromCache", file.FileId);
     }
 
-    private async Task StartConversion()
-    {
-        if (!pendingFiles.Any()) return;
-        isProcessing = true;
-        StateHasChanged();
-
-        var filesToProcess = pendingFiles.ToList();
-
-        foreach (var file in filesToProcess)
-        {
-            try 
-            {
-                var nativeRes = await JS.InvokeAsync<NativeResult>("compressNativeVelo", file.FileId, 75);
-
-                results.Add(new VeloProcessedResult {
-                    FileName = nativeRes.FileName,
-                    Url = nativeRes.Url,
-                    Data = nativeRes.Data, // <--- Verifica che questo campo NON sia null o vuoto qui!
-                    CompressedSize = nativeRes.Data.Length / 1024,
-                    Savings = Math.Round(100 - ((double)nativeRes.Data.Length / nativeRes.OrigSize * 100), 1)
-                });
-
-                //pendingFiles.Remove(file);
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Errore su {file.Name}: {ex.Message}");
-            }
-        }
-
-        isProcessing = false;
-        StateHasChanged();
-    }
-
     private async Task DownloadZip()
     {
-        // Trasformiamo i risultati in un formato leggero e sicuro (Base64)
-        var zipPayload = results.Select(r => new {
-            fileName = r.FileName,
-            data = Convert.ToBase64String(r.Data) // Trasforma i byte in stringa sicura
+        var zipPayload = pendingFiles.Where(f => f.Data != null).Select(r => new
+        {
+            fileName = r.Name,
+            data = Convert.ToBase64String(r.Data!)
         }).ToList();
 
         var json = System.Text.Json.JsonSerializer.Serialize(zipPayload);
         await JS.InvokeVoidAsync("downloadAsZip", json);
     }
 
+    private async Task ResetQuality(FileEntry file)
+    {
+        // Resetta la qualità al valore di default (75)
+        file.Quality = 75;
 
-    public class FileEntry {
-        public string Name { get; set; } = "";
-        public long Size { get; set; }
-        
-        [System.Text.Json.Serialization.JsonPropertyName("fileId")]
-        public string FileId { get; set; } = ""; // Nome nuovo e tipo string
-        
-        [System.Text.Json.Serialization.JsonPropertyName("is420")]
-        public bool Is420 { get; set; }
-    }
+        // Riesegue l'ottimizzazione per aggiornare il peso del file
+        await OptimizeSingleFile(file);
 
-    public class NativeResult {
-        public byte[] Data { get; set; } = Array.Empty<byte>();
-        public string Url { get; set; } = "";
-        public long OrigSize { get; set; }
-        public string FileName { get; set; } = "";
-    }
-
-    public class VeloProcessedResult {
-        public string FileName { get; set; } = "";
-        public string Url { get; set; } = "";
-        public byte[] Data { get; set; }
-        public long CompressedSize { get; set; }
-        public double Savings { get; set; }
+        StateHasChanged();
     }
 }

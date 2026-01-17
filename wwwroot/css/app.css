@@ -226,3 +226,32 @@ a, .btn-link {
     border-color: #10b981;
     cursor: pointer;
 }
+
+.form-range::-webkit-slider-runnable-track {
+    background: #2d3748;
+    height: 6px;
+    border-radius: 3px;
+}
+
+.form-range::-webkit-slider-thumb {
+    background: #10b981; /* Verde Velo */
+    margin-top: -5px;
+}
+
+.form-range:disabled::-webkit-slider-thumb {
+    background: #4a5568; /* Grigio quando disattivato */
+}
+
+/* Effetto focus sulla riga quando si muove lo slider */
+.file-row:focus-within {
+    border-color: #10b981 !important; /* Verde Velo */
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+/* Stile per il tasto reset */
+.btn-outline-info:hover {
+    background-color: transparent !important;
+    color: #0dcaf0 !important;
+    transform: rotate(-45deg); /* Effetto rotazione al passaggio */
+    transition: 0.2s;
+}
