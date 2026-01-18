@@ -86,7 +86,17 @@
         };
 
         window.removeFromCache = (fileId) => {
-            veloFileCache = veloFileCache.filter(e => e.id !== fileId);
+            const item = window.veloFileCache[fileId];
+            if (item) {
+                // 1. Liberiamo la memoria revocando gli URL creati
+                if (item.url) URL.revokeObjectURL(item.url);
+                if (item.originalUrl) URL.revokeObjectURL(item.originalUrl);
+
+                // 2. Cancelliamo l'oggetto dalla cache
+                delete window.veloFileCache[fileId];
+
+                console.log(`File ${fileId} rimosso dalla memoria.`);
+            }
         };
 
         window.clearVeloCache = () => {
@@ -125,6 +135,7 @@
         };
 
     </script>
+        <script src="js/preview-zoom.js"></script>
 </body>
 
 </html>
