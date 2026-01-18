@@ -2,9 +2,11 @@
 @using Velo.Classes
 @inject IJSRuntime JS
 
-<div class="container-fluid vh-100 overflow-hidden bg-black">
+@using System.Globalization
+
+<div class="container-fluid vh-100 overflow-hidden velo-bg">
     <div class="row h-100">
-        <div class="col-3 bg-dark border-end border-secondary p-3 overflow-auto h-100 shadow-lg">
+        <div class="col-3 velo-bg border-end border-secondary p-3 overflow-auto h-100">
             <h2 class="text-center mb-4"><span class="LogoFont">VELO</span></h2>
 
             <div class="upload-zone mb-4">
@@ -14,37 +16,39 @@
             @if (pendingFiles.Any())
             {
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="text-muted small uppercase mb-0">Files (@pendingFiles.Count)</h5>
-                    <button class="btn btn-success btn-sm shadow" @onclick="DownloadZip">📦 ZIP</button>
+                    <h5 class="text-muted small text-uppercase mb-0">Files (@pendingFiles.Count)</h5>
+                    <button class="btn btn-success btn-sm" @onclick="DownloadZip">📦 ZIP</button>
                 </div>
 
                 @foreach (var file in pendingFiles)
                 {
-                    <div class="file-row p-3 mb-2 bg-dark border @(selectedFile == file ? "border-primary shadow-glow" : (file.Data != null ? "border-success" : "border-secondary")) rounded cursor-pointer"
+                    <div class="file-row p-3 mb-2 rounded @(selectedFile == file ? "border-primary shadow-glow" : "border-secondary")"
                          @onclick="() => SelectFile(file)">
                         
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div class="text-truncate" style="max-width: 60%;">
-                                <span class="text-white fw-bold small">@file.Name</span>
-                                <div class="d-flex gap-2 mt-1">
-                                    <small class="text-muted" style="font-size: 0.7rem;">Orig: @(file.Size / 1024) KB</small>
+                            <div class="text-truncate" style="max-width: 75%;">
+                                <div class="text-white fw-bold small">@file.Name</div>
+                                <div class="mt-1">
+                                    <small class="text-muted">Org: @FormatSize(file.Size / 1024.0)</small>
                                     @if (file.CompressedSize.HasValue)
                                     {
-                                        <small class="text-success fw-bold" style="font-size: 0.7rem;">Final: @file.CompressedSize KB</small>
+                                        bool isLarger = file.CompressedSize.Value > (file.Size / 1024.0);
+                                        <small class="@(isLarger ? "text-danger" : "text-success") fw-bold ms-2">
+                                            Fin: @FormatSize(file.CompressedSize.Value)
+                                        </small>
                                     }
                                 </div>
                             </div>
-                            <div class="d-flex gap-1">
+                            <div class="d-flex gap-2">
                                 <button class="btn btn-sm text-info p-0" @onclick:stopPropagation="true" @onclick="() => ResetQuality(file)">⟳</button>
                                 <button class="btn btn-sm text-danger p-0" @onclick:stopPropagation="true" @onclick="() => RemoveFile(file)">✕</button>
                             </div>
                         </div>
 
-                        <div class="row align-items-center g-2 border-top border-secondary pt-2">
+                        <div class="row align-items-center g-2 border-top border-secondary pt-2 mt-1">
                             <div class="col">
-                                <input type="range" class="form-range" min="1" max="100" 
-                                       value="@file.Quality" 
-                                       @oninput="(e) => UpdateQualityValue(e, file)"
+                                <input type="range" class="form-range" min="1" max="100" step="1" value="@file.Quality"
+                                       @oninput="(e) => UpdateQualityValue(e, file)" 
                                        @onchange="() => OptimizeSingleFile(file)"
                                        @onclick:stopPropagation="true" />
                             </div>
@@ -57,52 +61,58 @@
             }
         </div>
 
-<div class="col-9 p-0 bg-black d-flex flex-column h-100 position-relative">
-    @if (selectedFile != null)
-    {
-        <div class="preview-header p-2 bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
-            <div class="ps-2">
-                <span class="text-white-50 small">@selectedFile.Name</span>
-                <span class="badge bg-secondary ms-2" style="font-size: 0.6rem;">ORIGINALE</span>
-                <span class="text-white mx-1">vs</span>
-                <span class="badge bg-success" style="font-size: 0.6rem;">VELO OPTIMIZED</span>
-            </div>
-            @if(selectedFile.Savings.HasValue) {
-                <span class="badge border border-success text-success me-2">Risparmio: -@selectedFile.Savings%</span>
-            }
-        </div>
-
-        <div class="preview-stage" style="width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
-            
-            @if (selectedFile != null && !string.IsNullOrEmpty(selectedFile.Url))
+        <div class="col-9 p-0 d-flex flex-column h-100 position-relative">
+            @if (selectedFile != null)
             {
-                <div class="velo-container" style="position: relative; display: inline-block; line-height: 0;">
-                    
-                    <img src="@selectedFile.OriginalUrl" 
-                        style="display: block; max-width: 100%; max-height: 85vh; width: auto; height: auto; visibility: visible;" />
-
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; overflow: hidden;
-                                clip-path: inset(0 0 0 @(comparisonRange.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%);">
-                        <img src="@selectedFile.Url" 
-                            style="display: block; width: 100%; height: 100%; object-fit: contain;" />
+                <div class="p-2 border-bottom border-secondary d-flex justify-content-between align-items-center">
+                    <div class="ps-2">
+                        <span class="text-white-50 small">@selectedFile.Name</span>
+                        <span class="badge bg-secondary ms-2">ORIGINAL</span>
+                        <span class="badge bg-success ms-1">VELO</span>
                     </div>
+                    @if (selectedFile.Savings.HasValue)
+                    {
+                        var s = selectedFile.Savings.Value;
+                        <span class="badge border @(s >= 0 ? "border-success text-success" : "border-danger text-danger") me-2">
+                            @(s >= 0 ? $"Reduction: -{s:F1}%" : $"Increase: +{Math.Abs(s):F1}%")
+                        </span>
+                    }
+                </div>
 
-                    <div style="position: absolute; top: 0; bottom: 0; width: 2px; background: #007bff; z-index: 5; pointer-events: none;
-                                left: @(comparisonRange.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%;">
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; background: #007bff; border-radius: 50%; border: 2px solid white; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">↔</div>
-                    </div>
+                <div class="preview-stage">
+                    @if (!string.IsNullOrEmpty(selectedFile.Url))
+                    {
+                        <div class="velo-container" @ref="veloContainerRef" tabindex="0">
+                            <div class="zoom-controls">
+                                <button class="zoom-btn reset" @onclick="ResetZoom" title="Reset zoom">⟳</button>
+                            </div>
 
-                    <input type="range" min="0" max="100" step="1" 
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; z-index: 10; cursor: col-resize; margin: 0; padding: 0; -webkit-appearance: none;"
-                        @bind="comparisonRange" @bind:event="oninput" />
+                            <div class="zoom-frame">
+                                <img src="@selectedFile.OriginalUrl" class="frame-img" draggable="false" />
+
+                                <div class="overlay-clipping" 
+                                     style="position: absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden; clip-path: inset(0 calc(100% - @(comparisonRange.ToString("F0", CultureInfo.InvariantCulture))%) 0 0);">
+                                    <img src="@selectedFile.Url" class="frame-img" style="object-fit:contain;" draggable="false" />
+                                </div>
+
+                                <div class="slider-divider" style="left: @(comparisonRange.ToString("F0", CultureInfo.InvariantCulture))%; z-index:30; pointer-events:auto;">
+                                    <div class="slider-knob">↔</div>
+                                </div>
+
+                                <input type="range" min="0" max="100" step="1" class="slider-invisible-input"
+                                       @bind="comparisonRange" @bind:event="oninput" />
+                            </div>
+                        </div>
+                    }
                 </div>
             }
+            else
+            {
+                <div class="preview-stage text-white-50">Select or drop an image to start</div>
+            }
         </div>
-    }
-</div>
     </div>
 </div>
-
 
 @code {
     private bool isProcessing = false;
@@ -111,6 +121,8 @@
 
     private FileEntry? selectedFile;
     private double comparisonRange = 50; // Posizione iniziale dello slider Before/After
+    private ElementReference veloContainerRef;
+    private string? lastZoomInitFileId;
 
 
     private void SelectFile(FileEntry file)
@@ -119,25 +131,49 @@
         StateHasChanged();
     }
 
-private async Task OnFilesSelected(ChangeEventArgs e)
-{
-    var newFiles = await JS.InvokeAsync<List<FileEntry>>("getSelectedFilesInfo", fileInputRef);
-    
-    foreach (var file in newFiles)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        file.Quality = 75;
-        
-        // Ora l'ID esiste sicuramente in cache
-        file.OriginalUrl = await JS.InvokeAsync<string>("getFileUrl", file.FileId);
-        
-        pendingFiles.Add(file);
-        if (selectedFile == null) selectedFile = file;
-
-        // Eseguiamo l'ottimizzazione
-        await OptimizeSingleFile(file); 
+        if (selectedFile != null && selectedFile.FileId != lastZoomInitFileId)
+        {
+            await JS.InvokeVoidAsync("previewZoom.init", veloContainerRef);
+            lastZoomInitFileId = selectedFile.FileId;
+        }
     }
-    StateHasChanged();
-}
+
+    private async Task ZoomIn()
+    {
+        await JS.InvokeVoidAsync("previewZoom.zoomIn", veloContainerRef);
+    }
+
+    private async Task ZoomOut()
+    {
+        await JS.InvokeVoidAsync("previewZoom.zoomOut", veloContainerRef);
+    }
+
+    private async Task ResetZoom()
+    {
+        await JS.InvokeVoidAsync("previewZoom.reset", veloContainerRef);
+    }
+
+    private async Task OnFilesSelected(ChangeEventArgs e)
+    {
+        var newFiles = await JS.InvokeAsync<List<FileEntry>>("getSelectedFilesInfo", fileInputRef);
+
+        foreach (var file in newFiles)
+        {
+            file.Quality = 75;
+
+            // Ora l'ID esiste sicuramente in cache
+            file.OriginalUrl = await JS.InvokeAsync<string>("getFileUrl", file.FileId);
+
+            pendingFiles.Add(file);
+            if (selectedFile == null) selectedFile = file;
+
+            // Eseguiamo l'ottimizzazione
+            await OptimizeSingleFile(file);
+        }
+        StateHasChanged();
+    }
 
 
     private async Task StartConversion()
@@ -174,8 +210,19 @@ private async Task OnFilesSelected(ChangeEventArgs e)
 
     private async Task RemoveFile(FileEntry file)
     {
-        pendingFiles.Remove(file);
+        // 1. Chiamiamo il JS per pulire la RAM
         await JS.InvokeVoidAsync("removeFromCache", file.FileId);
+
+        // 2. Rimuoviamo dalla lista C#
+        pendingFiles.Remove(file);
+
+        // 3. Se il file rimosso era quello selezionato, azzeriamo l'anteprima
+        if (selectedFile == file)
+        {
+            selectedFile = pendingFiles.FirstOrDefault();
+        }
+
+        StateHasChanged();
     }
 
     private async Task DownloadZip()
@@ -201,7 +248,7 @@ private async Task OnFilesSelected(ChangeEventArgs e)
         StateHasChanged();
     }
 
-private void UpdateQualityValue(ChangeEventArgs e, FileEntry file)
+    private void UpdateQualityValue(ChangeEventArgs e, FileEntry file)
     {
         if (int.TryParse(e.Value?.ToString(), out var newVal))
         {
@@ -210,7 +257,19 @@ private void UpdateQualityValue(ChangeEventArgs e, FileEntry file)
         }
     }
 
+    private string FormatSize(double? sizeInKb)
+    {
+        if (!sizeInKb.HasValue) return "-";
+
+        // Se è maggiore o uguale a 1024 KB, lo mostriamo in MB
+        if (sizeInKb >= 1024)
+        {
+            return (sizeInKb.Value / 1024.0).ToString("N2", System.Globalization.CultureInfo.CurrentCulture) + " MB";
+        }
+
+        // Altrimenti lo mostriamo in KB
+        return sizeInKb.Value.ToString("N0", System.Globalization.CultureInfo.CurrentCulture) + " KB";
+    }
 
 
-    
 }
