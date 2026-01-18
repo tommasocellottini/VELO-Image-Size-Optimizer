@@ -1,6 +1,7 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
-html, body {
+html,
+body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -8,7 +9,8 @@ h1:focus {
     outline: none;
 }
 
-a, .btn-link {
+a,
+.btn-link {
     color: #0071c1;
 }
 
@@ -18,8 +20,12 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 /* .content {
@@ -50,12 +56,12 @@ a, .btn-link {
     z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
 
 .blazor-error-boundary {
     background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
@@ -63,9 +69,9 @@ a, .btn-link {
     color: white;
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
 
 .loading-progress {
     position: relative;
@@ -75,19 +81,19 @@ a, .btn-link {
     margin: 20vh auto 1rem auto;
 }
 
-    .loading-progress circle {
-        fill: none;
-        stroke: #e0e0e0;
-        stroke-width: 0.6rem;
-        transform-origin: 50% 50%;
-        transform: rotate(-90deg);
-    }
+.loading-progress circle {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 0.6rem;
+    transform-origin: 50% 50%;
+    transform: rotate(-90deg);
+}
 
-        .loading-progress circle:last-child {
-            stroke: #1b6ec2;
-            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-            transition: stroke-dasharray 0.05s ease-in-out;
-        }
+.loading-progress circle:last-child {
+    stroke: #1b6ec2;
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+    transition: stroke-dasharray 0.05s ease-in-out;
+}
 
 .loading-progress-text {
     position: absolute;
@@ -96,19 +102,22 @@ a, .btn-link {
     inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
 }
 
-    .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
-    }
+.loading-progress-text:after {
+    content: var(--blazor-load-percentage-text, "Loading");
+}
 
 
-    /* Palette specifica per la tua Velo Card */
+/* Palette specifica per la tua Velo Card */
 .velo-card {
     background: #181825;
     padding: 20px;
     color: white;
     height: 100vh;
-    font-family: 'Inter', sans-serif; /* Font per "Image Size Optimizer" */
+    font-family: 'Inter', sans-serif;
+    /* Font per "Image Size Optimizer" */
     font-weight: 400;
+
+    height: 100%;
 }
 
 .uppercase {
@@ -135,28 +144,31 @@ a, .btn-link {
     box-shadow: 0 0 0 0.25rem rgba(203, 166, 247, 0.25);
 }
 
-.main{
+.main {
     background-color: #171820;
 }
 
-.LogoFont{
-    font-family: 'Montserrat', sans-serif; /* Font solo per Velo */
+.LogoFont {
+    font-family: 'Montserrat', sans-serif;
+    /* Font solo per Velo */
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 3px;
-    font-style: italic; /* Opzionale: per dare l'idea di velocità */
+    font-style: italic;
+    /* Opzionale: per dare l'idea di velocità */
 
     background: linear-gradient(180deg, #6200ff 0%, #ffffff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 8px rgba(255,255,255,0.2));
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
 
     font-size: 2.2rem;
 
 }
 
-.LogoDescription{
-    font-family: 'Montserrat', sans-serif; /* Font solo per Velo */
+.LogoDescription {
+    font-family: 'Montserrat', sans-serif;
+    /* Font solo per Velo */
     font-weight: 100;
     /* text-transform: uppercase; */
     letter-spacing: 0px;
@@ -165,7 +177,7 @@ a, .btn-link {
     background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 8px rgba(255,255,255,0.2));
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
 
     font-size: 1.5rem;
 }
@@ -196,9 +208,11 @@ a, .btn-link {
 }
 
 .badge-velo-420 {
-    background-color: #064e3b !important; /* Verde foresta profondo */
+    background-color: #064e3b !important;
+    /* Verde foresta profondo */
     color: #ffffff !important;
-    border: 1px solid #10b981; /* Bordo verde smeraldo brillante */
+    border: 1px solid #10b981;
+    /* Bordo verde smeraldo brillante */
     padding: 0.35em 0.65em;
     font-weight: 500;
     letter-spacing: 0.05em;
@@ -208,7 +222,8 @@ a, .btn-link {
 
 .btn-info {
     background-color: #0dcaf0 !important;
-    color: #000 !important; /* Testo nero su fondo azzurro per massima leggibilità */
+    color: #000 !important;
+    /* Testo nero su fondo azzurro per massima leggibilità */
 }
 
 /* Nasconde il testo nativo del browser */
@@ -219,14 +234,16 @@ a, .btn-link {
 /* Inserisce il testo inglese personalizzato */
 .velo-input-english::before {
     content: 'Select files';
-    color: #a0aec0; /* Grigio chiaro come il resto della UI */
+    color: #a0aec0;
+    /* Grigio chiaro come il resto della UI */
     display: inline-block;
     margin-right: 10px;
 }
 
 /* Stilizza il tasto "Scegli file" in inglese */
 .velo-input-english::file-selector-button {
-    content: 'Browse'; /* Alcuni browser permettono la sostituzione */
+    content: 'Browse';
+    /* Alcuni browser permettono la sostituzione */
     background-color: #2d3748;
     color: white;
     border: 1px solid #4a5568;
@@ -248,17 +265,20 @@ a, .btn-link {
 }
 
 .form-range::-webkit-slider-thumb {
-    background: #10b981; /* Verde Velo */
+    background: #10b981;
+    /* Verde Velo */
     margin-top: -5px;
 }
 
 .form-range:disabled::-webkit-slider-thumb {
-    background: #4a5568; /* Grigio quando disattivato */
+    background: #4a5568;
+    /* Grigio quando disattivato */
 }
 
 /* Effetto focus sulla riga quando si muove lo slider */
 .file-row:focus-within {
-    border-color: #10b981 !important; /* Verde Velo */
+    border-color: #10b981 !important;
+    /* Verde Velo */
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
 }
 
@@ -266,6 +286,90 @@ a, .btn-link {
 .btn-outline-info:hover {
     background-color: transparent !important;
     color: #0dcaf0 !important;
-    transform: rotate(-45deg); /* Effetto rotazione al passaggio */
+    transform: rotate(-45deg);
+    /* Effetto rotazione al passaggio */
     transition: 0.2s;
+}
+
+
+
+.preview-stage {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.velo-comparison-container {
+    position: relative;
+    display: inline-block; /* Si stringe attorno alla prima immagine */
+    max-width: 100%;
+    max-height: 85vh;
+}
+
+.img-base-responsive {
+    display: block;
+    max-width: 100%;
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+}
+
+.overlay-clipping {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.overlay-clipping img {
+    /* Fondamentale: l'immagine sopra deve ignorare il clipping del genitore per le dimensioni */
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.slider-invisible-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 10;
+    cursor: col-resize;
+    margin: 0;
+}
+
+.slider-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #007bff;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.slider-knob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 34px;
+    height: 34px;
+    background: #007bff;
+    border-radius: 50%;
+    border: 2px solid white;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
