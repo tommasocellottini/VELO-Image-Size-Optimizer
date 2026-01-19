@@ -52,7 +52,13 @@
                     size: file.size
                 });
             }
+            // Non resettiamo l'input file qui - lo farà solo l'utente con un tasto esplicito
+            // inputElement.value = '';
             return result;
+        };
+
+        window.clearFileInput = (inputElement) => {
+            inputElement.value = '';
         };
 
         window.compressNativeVelo = async (fileId, quality) => {
