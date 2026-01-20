@@ -244,16 +244,18 @@ body {
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
-    color: white;
-    background-color: #1a1a1a;
+    color: transparent;
+    background-color: transparent;
     background-clip: padding-box;
-    border: 1px solid var(--velo-border);
+    border: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
     border-radius: .25rem;
     transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 }
+
+.select-files-empty {}
 
 .select-files::file-selector-button {
     padding: .375rem .75rem;
