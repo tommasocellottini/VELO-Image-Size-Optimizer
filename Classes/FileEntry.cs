@@ -6,7 +6,6 @@ namespace Velo.Classes
         public string FileId { get; set; } = "";
         public string Name { get; set; } = "";
         public long Size { get; set; } // Peso Originale
-        public bool Is420 { get; set; }
         public string? OriginalUrl { get; set; }
 
 
