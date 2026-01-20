@@ -16,5 +16,6 @@ namespace Velo.Classes
         public string? Url { get; set; }
         public byte[]? Data { get; set; }
         public int Quality { get; set; } = 75; // Qualità specifica per questo file
+        public string OutputFormat { get; set; } = "jpeg";
     }
 }

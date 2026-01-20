@@ -7,29 +7,86 @@
 @using System.IO.Compression
 
 <div class="container-fluid vh-100 overflow-hidden velo-bg d-flex flex-column" @ref="dropZoneElement">
-    <button class="btn btn-link text-white-50 position-absolute"
-        style="top: 1rem; right: 1rem; z-index: 1050;" @onclick="() => showHelp = !showHelp">
-        Help
+    <button class="btn btn-link text-white-50 position-absolute" style="top: 1rem; right: 1rem; z-index: 1050;"
+        @onclick="() => showHelp = !showHelp">
+        About
     </button>
 
     @if (showHelp)
     {
-        <div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1055;" @onclick="() => showHelp = false"></div>
+        <div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1055;" @onclick="() => showHelp = false">
+        </div>
         <div class="position-absolute bg-dark text-white p-3 rounded shadow-lg border border-secondary"
-             style="top: 3.5rem; right: 1rem; z-index: 1060; width: 500px; max-width: 90vw;">
-            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2" aria-label="Close" @onclick="() => showHelp = false"></button>
+            style="top: 3.5rem; right: 1rem; z-index: 1060; width: 500px; max-width: 90vw;">
+            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2" aria-label="Close"
+                @onclick="() => showHelp = false"></button>
             <div class="text-start pe-4">
                 <strong>Velo is free and respects your privacy.</strong><br>
-                <small class="text-white-50">All processing is done locally in your browser. Your files are never uploaded to any server.</small>
+                <small class="text-white-50">All processing is done locally in your browser. Your files are never uploaded
+                    to any server.</small>
                 <hr class="border-secondary my-2">
                 <small class="text-white-50">
                     This project is open-source. You can find the code on
                     <a href="https://github.com/tommasocellottini/VELO-Image-Size-Optimizer" target="_blank"
                         class="text-white">GitHub</a>.
                 </small>
+                <hr class="border-secondary my-2">
+                <small class="text-white-50">
+                    Made by Tommaso Cellottini - 2026
+                </small>
             </div>
         </div>
     }
+
+    @if (showPrivacy)
+    {
+        <div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1055;" @onclick="() => showPrivacy = false">
+        </div>
+        <div class="position-absolute bg-dark text-white p-4 rounded shadow-lg border border-secondary overflow-auto"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1060; width: 800px; max-width: 95vw; max-height: 90vh;">
+            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" aria-label="Close"
+                @onclick="() => showPrivacy = false"></button>
+
+            <h3 class="mb-4 fw-bold">Privacy Policy</h3>
+            
+            <p class="text-white-50 mb-4">Last updated: @DateTime.Now.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.InvariantCulture)</p>
+
+            <h5 class="text-primary mb-2">1. Introduction</h5>
+            <p class="small">Welcome to VELO Image Size Optimizer. We are committed to protecting your privacy. This Privacy Policy explains how our application handles your data.</p>
+
+            <h5 class="text-primary mb-2 mt-3">2. Local Processing (Client-Side)</h5>
+            <p class="small"><strong>VELO is designed with privacy as a core feature.</strong> Unlike many other online tools, VELO operates entirely within your web browser.</p>
+            
+            <div class="alert bg-opacity-10 border-success text-white p-2 mb-2">
+                <small><strong>Your files are never uploaded to any server.</strong></small>
+            </div>
+            <p class="small">When you select or drag images into the application:</p>
+            <ul class="small">
+                <li>The image processing happens locally on your device's processor (CPU).</li>
+                <li>Your images never leave your computer or mobile device.</li>
+                <li>We do not have access to view, store, or copy your files.</li>
+            </ul>
+
+            <h5 class="text-primary mb-2 mt-3">3. Data Collection</h5>
+            <p class="small">Since the application runs locally:</p>
+            <ul class="small">
+                <li><strong>No Personal Data:</strong> We do not collect names, email addresses, or IP addresses.</li>
+                <li><strong>No Analytics:</strong> We do not use third-party analytics services.</li>
+                <li><strong>No Cookies:</strong> This application does not use cookies.</li>
+            </ul>
+
+            <h5 class="text-primary mb-2 mt-3">4. Hosting</h5>
+            <p class="small">This website is served via a static hosting provider. The hosting provider may collect standard server logs (IP address, user agent) for security. This is standard internet behavior.</p>
+
+            <h5 class="text-primary mb-2 mt-3">5. Open Source</h5>
+            <p class="small">VELO is an open-source project. You can verify the code on our <a href="https://github.com/tommasocellottini/VELO-Image-Size-Optimizer" target="_blank" class="text-info">GitHub repository</a>.</p>
+
+            <h5 class="text-primary mb-2 mt-3">6. Contact</h5>
+            <p class="small">If you have any questions, please open an issue on our GitHub repository.</p>
+        </div>
+    }
+
+    <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple style="display: none;" />
 
     @if (!pendingFiles.Any())
     {
@@ -44,8 +101,7 @@
                 </button>
                 <div class="text-white-50">or drop an image to start</div>
             </div>
-            <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple
-                style="display: none;" />
+
         </div>
     }
     @if (pendingFiles.Any())
@@ -62,7 +118,7 @@
         </div>
     }
 
-    <div class="row h-100 flex-grow-1">
+    <div class="row flex-grow-1 overflow-hidden">
         <div class="col-3 velo-bg p-3 overflow-auto">
 
 
@@ -70,13 +126,26 @@
 
                 @if (pendingFiles.Any())
                 {
-                    <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple
-                        class="select-files " />
+                    @* <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple
+                        class="select-files " /> *@
+
+                    <button class="btn btn-primary btn-sm" style="pointer-events: auto; z-index: 1; width: 80px;"
+                        @onclick="TriggerFileSelect">
+                        Add IMG
+                    </button>
 
                     <div style="display: flex; gap: 5px;">
-                        <button class="btn btn-danger btn-sm" style="width: 80px;" @onclick="ClearAllFiles">🗑️
+                        <select class="form-select form-select-sm bg-dark text-white border-secondary p-0 ps-1"
+                            style="width: 80px;" value="@globalFormat" @onchange="ChangeGlobalFormat">
+                            <option value="jpeg">JPG</option>
+                            <option value="webp">WEBP</option>
+                            <option value="png">PNG</option>
+                        </select>
+                        <button class="btn btn-danger btn-sm" style="width: 80px;" @onclick="ClearAllFiles">
                             Clear</button>
-                        <button class="btn btn-success btn-sm" style="width: 80px;" @onclick="DownloadZip">📦 ZIP</button>
+                        <button class="btn btn-success btn-sm" style="width: 80px;" @onclick="DownloadZip">
+                            Zip All
+                        </button>
                     </div>
                 }
             </div>
@@ -94,10 +163,10 @@
                             <div class="text-truncate" style="max-width: 75%;">
                                 <div class="text-white fw-bold small">@file.Name</div>
                                 <div class="mt-1">
-                                    <small class="text-muted">Before: @FormatSize(file.Size / 1024.0)</small>
+                                    <small class="text-muted">Before: @FormatSize(file.Size)</small>
                                     @if (file.CompressedSize.HasValue)
                                     {
-                                        bool isLarger = file.CompressedSize.Value > (file.Size / 1024.0);
+                                        bool isLarger = file.CompressedSize.Value > file.Size;
                                         <small class="@(isLarger ? "text-danger" : "text-success") fw-bold ms-2">
                                             After: @FormatSize(file.CompressedSize.Value)
                                             @if (file.Savings.HasValue)
@@ -138,6 +207,15 @@
                         </div>
 
                         <div class="row align-items-center g-2 border-top border-secondary pt-2 mt-1">
+                            <div class="col-auto">
+                                <select class="form-select form-select-sm bg-dark text-white border-secondary p-0 ps-1"
+                                    style="width: 65px; height: 24px; font-size: 0.7rem;" value="@file.OutputFormat"
+                                    @onchange="@(e => ChangeFormat(e, file))" @onclick:stopPropagation="true">
+                                    <option value="jpeg">JPG</option>
+                                    <option value="webp">WEBP</option>
+                                    <option value="png">PNG</option>
+                                </select>
+                            </div>
                             <div class="col">
                                 <input type="range" class="form-range" min="1" max="100" step="1" value="@file.Quality"
                                     @oninput="(e) => UpdateQualityValue(e, file)" @onchange="() => OptimizeSingleFile(file)"
@@ -155,7 +233,7 @@
         <div class="col-9 p-0 d-flex flex-column h-100 position-relative">
             @if (selectedFile != null)
             {
-      
+
 
                 <div class="preview-stage @(selectedFile != null ? "border border-primary shadow-glow" : "")">
                     @if (!string.IsNullOrEmpty(selectedFile.Url))
@@ -183,6 +261,11 @@
             }
         </div>
     </div>
+    <div class="text-center text-white-50 py-2" style="font-size: 0.8rem; z-index: 10;">
+        Velo is free and respects your privacy. All processing is done locally. Your files are never uploaded.
+        <span class="mx-2">|</span>
+        <a href="#" @onclick="() => showPrivacy = true" @onclick:preventDefault class="text-white-50">Privacy Policy</a>
+    </div>
 </div>
 
 @code {
@@ -196,6 +279,8 @@
     private string? lastZoomInitFileId;
     private bool showingOriginal = false;
     private bool showHelp = false;
+    private bool showPrivacy = false;
+    private string globalFormat = "jpeg";
 
 
     private void SelectFile(FileEntry file)
@@ -284,11 +369,11 @@
     {
         try
         {
-            var res = await JS.InvokeAsync<NativeResult>("compressNativeVelo", file.FileId, file.Quality);
+            var res = await JS.InvokeAsync<NativeResult>("compressNativeVelo", file.FileId, file.Quality, file.OutputFormat);
 
             file.Url = res.Url;
             file.Data = res.Data;
-            file.CompressedSize = res.Data.Length / 1024;
+            file.CompressedSize = res.Data.Length;
             file.Savings = Math.Round(100 - ((double)res.Data.Length / res.OrigSize * 100), 1);
             StateHasChanged();
         }
@@ -337,7 +422,9 @@
         {
             foreach (var file in pendingFiles.Where(f => f.Data != null))
             {
-                var entry = archive.CreateEntry(file.Name);
+                var ext = file.OutputFormat == "jpeg" ? ".jpg" : "." + file.OutputFormat;
+                var entryName = Path.ChangeExtension(file.Name, ext);
+                var entry = archive.CreateEntry(entryName);
                 using var entryStream = entry.Open();
                 await entryStream.WriteAsync(file.Data!, 0, file.Data!.Length);
             }
@@ -354,9 +441,13 @@
 
     private async Task DownloadSingleFile(FileEntry file)
     {
-        if (!string.IsNullOrEmpty(file.Url))
+        if (file.Data != null)
         {
-            await JS.InvokeVoidAsync("downloadFile", file.Url, file.Name);
+            var ext = file.OutputFormat == "jpeg" ? ".jpg" : "." + file.OutputFormat;
+            var fileName = Path.ChangeExtension(file.Name, ext);
+            using var ms = new MemoryStream(file.Data);
+            using var streamRef = new DotNetStreamReference(ms);
+            await JS.InvokeVoidAsync("downloadFromStream", fileName, streamRef);
         }
     }
 
@@ -371,6 +462,25 @@
         StateHasChanged();
     }
 
+    private async Task ChangeFormat(ChangeEventArgs e, FileEntry file)
+    {
+        file.OutputFormat = e.Value?.ToString() ?? "jpeg";
+        await OptimizeSingleFile(file);
+    }
+
+    private async Task ChangeGlobalFormat(ChangeEventArgs e)
+    {
+        var format = e.Value?.ToString();
+        if (string.IsNullOrEmpty(format)) return;
+
+        foreach (var file in pendingFiles)
+        {
+            file.OutputFormat = format;
+            await OptimizeSingleFile(file);
+        }
+        globalFormat = "";
+    }
+
     private void UpdateQualityValue(ChangeEventArgs e, FileEntry file)
     {
         if (int.TryParse(e.Value?.ToString(), out var newVal))
@@ -380,18 +490,19 @@
         }
     }
 
-    private string FormatSize(double? sizeInKb)
+    private string FormatSize(long bytes)
     {
-        if (!sizeInKb.HasValue) return "-";
+        var culture = CultureInfo.CurrentCulture;
 
-        // Se è maggiore o uguale a 1024 KB, lo mostriamo in MB
-        if (sizeInKb >= 1024)
+        if (bytes >= 1024 * 1024)
         {
-            return (sizeInKb.Value / 1024.0).ToString("N2", System.Globalization.CultureInfo.CurrentCulture) + " MB";
+            return (bytes / 1024.0 / 1024.0).ToString("N1", culture) + " MB";
         }
-
-        // Altrimenti lo mostriamo in KB
-        return sizeInKb.Value.ToString("N0", System.Globalization.CultureInfo.CurrentCulture) + " KB";
+        if (bytes >= 1024)
+        {
+            return (bytes / 1024.0).ToString("N1", culture) + " KB";
+        }
+        return bytes.ToString("N0", culture) + " B";
     }
 
 
