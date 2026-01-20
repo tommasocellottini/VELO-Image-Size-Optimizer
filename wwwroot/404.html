@@ -3,120 +3,139 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Velo</title>
     <base href="/" />
     <!-- <base href="/VELO-Image-Size-Optimizer/" /> -->
-    <link
-        href="css/bootstrap/bootstrap.min.css"
-        rel="stylesheet"
-    />
-    <link
-        href="css/app.css"
-        rel="stylesheet"
-    />
-    <link
-        rel="icon"
-        type="image/png"
-        href="favicon.png"
-    />
-    <link
-        href="Velo.styles.css"
-        rel="stylesheet"
-    />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400&display=swap"
-        rel="stylesheet"
-    >
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="Velo.styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle
-                r="40%"
-                cx="50%"
-                cy="50%"
-            />
-            <circle
-                r="40%"
-                cx="50%"
-                cy="50%"
-            />
-        </svg>
-        <div class="loading-progress-text"></div>
+
     </div>
-    <div id="blazor-error-ui"> An unhandled error has occurred. <a
-            href=""
-            class="reload"
-        >Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
+
     <script src="_framework/blazor.webassembly.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
-        // Magazzino temporaneo per i file
-        let veloFileCache = [];
+        window.veloFileCache = {};
 
         window.getSelectedFilesInfo = async (inputElement) => {
             const files = inputElement.files;
-            const info = [];
+            const result = [];
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
+                // Usiamo un ID semplice o il nome + data per evitare problemi di caratteri
+                const id = 'file_' + Math.random().toString(36).substr(2, 9);
 
-                // Generiamo l'ID come stringa univoca
-                const id = "ID_" + Date.now() + "_" + i;
-
-                if (!window.veloFileCache) window.veloFileCache = {};
-                window.veloFileCache[id] = file;
-
-                info.push({
+                // SALVATAGGIO REALE DEL BLOB
+                window.veloFileCache[id] = {
                     name: file.name,
-                    size: file.size,
-                    internalId: id, 
-                    is420: false
+                    blob: file // Questo è il Blob richiesto da createImageBitmap
+                };
+
+                result.push({
+                    fileId: id,
+                    name: file.name,
+                    size: file.size
                 });
             }
-            return info;
+            // Non resettiamo l'input file qui - lo farà solo l'utente con un tasto esplicito
+            // inputElement.value = '';
+            return result;
+        };
+
+        window.clearFileInput = (inputElement) => {
+            inputElement.value = '';
         };
 
         window.compressNativeVelo = async (fileId, quality) => {
-            // Cerchiamo il file nella nostra cache tramite l'ID unico
-            const cacheEntry = veloFileCache.find(e => e.id === fileId);
-            if (!cacheEntry) throw new Error("File non trovato nella cache di Velo");
+            const item = window.veloFileCache[fileId];
+            if (!item || !item.blob) {
+                throw new Error("File non trovato nella cache: " + fileId);
+            }
 
-            const file = cacheEntry.file;
-            const bitmap = await createImageBitmap(file);
+            // Qui passiamo item.blob che è il file originale
+            const img = await createImageBitmap(item.blob);
+
             const canvas = document.createElement('canvas');
-            canvas.width = bitmap.width;
-            canvas.height = bitmap.height;
+            canvas.width = img.width;
+            canvas.height = img.height;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(bitmap, 0, 0);
+            ctx.drawImage(img, 0, 0);
 
-            const blob = await new Promise(resolve =>
+            const resultBlob = await new Promise(resolve =>
                 canvas.toBlob(resolve, 'image/jpeg', quality / 100)
             );
 
+            // Salviamo il blob ottimizzato per lo ZIP futuro
+            window.veloFileCache[fileId].optimizedBlob = resultBlob;
+
+            const arrayBuffer = await resultBlob.arrayBuffer();
             return {
-                data: new Uint8Array(await blob.arrayBuffer()),
-                url: URL.createObjectURL(blob),
-                origSize: file.size,
-                fileName: file.name
+                data: new Uint8Array(arrayBuffer),
+                url: URL.createObjectURL(resultBlob),
+                origSize: item.blob.size
             };
         };
 
         window.removeFromCache = (fileId) => {
-            veloFileCache = veloFileCache.filter(e => e.id !== fileId);
+            const item = window.veloFileCache[fileId];
+            if (item) {
+                // 1. Liberiamo la memoria revocando gli URL creati
+                if (item.url) URL.revokeObjectURL(item.url);
+                if (item.originalUrl) URL.revokeObjectURL(item.originalUrl);
+
+                // 2. Cancelliamo l'oggetto dalla cache
+                delete window.veloFileCache[fileId];
+
+                console.log(`File ${fileId} rimosso dalla memoria.`);
+            }
         };
 
         window.clearVeloCache = () => {
             veloFileCache = [];
         };
 
+        window.downloadAsZip = async (filesJson) => {
+            const zip = new JSZip();
+            const folder = zip.folder("Velo_Optimized");
+            const files = JSON.parse(filesJson);
+
+            for (const file of files) {
+                // Decodifichiamo la stringa Base64 o l'array in un Uint8Array
+                // Se passiamo l'oggetto da Blazor, i dati arrivano spesso come stringa Base64
+                folder.file(file.fileName, file.data, { base64: true });
+            }
+
+            const content = await zip.generateAsync({ type: "blob" });
+            const zipUrl = URL.createObjectURL(content);
+
+            const link = document.createElement('a');
+            link.href = zipUrl;
+            link.download = "Velo_Images_Pack.zip";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+
+        window.getFileUrl = (fileId) => {
+            const item = window.veloFileCache[fileId];
+            if (item && item.blob) {
+                return URL.createObjectURL(item.blob);
+            }
+            return "";
+        };
+
     </script>
+        <script src="js/preview-zoom.js"></script>
 </body>
 
 </html>

@@ -1,6 +1,31 @@
 (function(){
     function clamp(v,a,b){return Math.min(Math.max(v,a),b)}
 
+    window.triggerClick = function(elem) {
+        if(elem) elem.click();
+    };
+
+    window.downloadFile = function(url, fileName) {
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    window.downloadFromStream = async function(fileName, contentStreamReference) {
+        const arrayBuffer = await contentStreamReference.arrayBuffer();
+        const blob = new Blob([arrayBuffer]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     window.enableDragDrop = function(elem, input) {
         if (!elem || !input) return;
         const stop = e => { e.preventDefault(); e.stopPropagation(); };
@@ -13,6 +38,17 @@
         });
     };
 
+    window.enablePaste = function(input) {
+        if (!input) return;
+        window.addEventListener('paste', e => {
+            if (e.clipboardData && e.clipboardData.files.length > 0) {
+                e.preventDefault();
+                input.files = e.clipboardData.files;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    };
+
     window.previewZoom = {
         init: function(elem){
             if(!elem) return;
@@ -20,7 +56,7 @@
             if(!el) return;
             if(el._pvZoom) return; // already initialized
 
-            let scale = 0.8, minScale = 0.8, maxScale = 10;
+            let scale = 0.8, minScale = 0.8, maxScale = 50;
             let translateX = 0, translateY = 0;
             let isPanning = false, startX = 0, startY = 0, startTranslateX = 0, startTranslateY = 0;
             let panningPointerId = null;
@@ -146,42 +182,6 @@
 
             const onResize = () => { if (scale === minScale && !isPanning) recenter(); };
             window.addEventListener('resize', onResize);
-
-            el._pvZoom = {
-                destroy: () => {
-                    el.removeEventListener('wheel', onWheel);
-                    el.removeEventListener('pointerdown', onPointerDown);
-                    el.removeEventListener('dblclick', onDblClick);
-                    window.removeEventListener('resize', onResize);
-                    // window pointer handlers and slider cleanup removed later by assigned destroy
-                    delete el._pvZoom;
-                },
-                zoomIn: (step=1.2) => {
-                    const rect = el.getBoundingClientRect();
-                    const cx = rect.width/2, cy = rect.height/2;
-                    const factor = step;
-                    const newScale = clamp(scale*factor, minScale, maxScale);
-                    const dx = (cx - translateX) / scale;
-                    const dy = (cy - translateY) / scale;
-                    scale = newScale;
-                    translateX = cx - dx*scale;
-                    translateY = cy - dy*scale;
-                    setTransform();
-                },
-                zoomOut: (step=1.2) => {
-                    const rect = el.getBoundingClientRect();
-                    const cx = rect.width/2, cy = rect.height/2;
-                    const factor = 1/step;
-                    const newScale = clamp(scale*factor, minScale, maxScale);
-                    const dx = (cx - translateX) / scale;
-                    const dy = (cy - translateY) / scale;
-                    scale = newScale;
-                    translateX = cx - dx*scale;
-                    translateY = cy - dy*scale;
-                    setTransform();
-                },
-                reset: () => { scale = minScale; recenter(); }
-            };
 
             if (frame) frame.style.transition = 'transform 120ms ease-out';
             setTransform();

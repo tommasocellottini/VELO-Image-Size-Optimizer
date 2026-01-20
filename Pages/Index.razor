@@ -3,32 +3,87 @@
 @inject IJSRuntime JS
 
 @using System.Globalization
+@using System.IO
+@using System.IO.Compression
 
 <div class="container-fluid vh-100 overflow-hidden velo-bg d-flex flex-column" @ref="dropZoneElement">
-    <div class="init-desc" style="pointer-events: none;">Select or drop an image to start</div>
+    <button class="btn btn-link text-white-50 position-absolute"
+        style="top: 1rem; right: 1rem; z-index: 1050;" @onclick="() => showHelp = !showHelp">
+        Help
+    </button>
 
-    <div class="velo-header p-3 d-flex align-items-center justify-content-between">
-        <div class="upload-zone" style="width: 500px;">
+    @if (showHelp)
+    {
+        <div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1055;" @onclick="() => showHelp = false"></div>
+        <div class="position-absolute bg-dark text-white p-3 rounded shadow-lg border border-secondary"
+             style="top: 3.5rem; right: 1rem; z-index: 1060; width: 500px; max-width: 90vw;">
+            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2" aria-label="Close" @onclick="() => showHelp = false"></button>
+            <div class="text-start pe-4">
+                <strong>Velo is free and respects your privacy.</strong><br>
+                <small class="text-white-50">All processing is done locally in your browser. Your files are never uploaded to any server.</small>
+                <hr class="border-secondary my-2">
+                <small class="text-white-50">
+                    This project is open-source. You can find the code on
+                    <a href="https://github.com/tommasocellottini/VELO-Image-Size-Optimizer" target="_blank"
+                        class="text-white">GitHub</a>.
+                </small>
+            </div>
+        </div>
+    }
+
+    @if (!pendingFiles.Any())
+    {
+        <div>
+            <div class="init-desc position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center"
+                style="pointer-events: none; gap: 1rem;">
+                <h2 class="mb-0 text-center"><img src="VeloLogoText.svg" alt="VELO"
+                        style="height: 80px; pointer-events: none;  height: 150px; " /></h2>
+                <button class="btn btn-primary btn-lg shadow-glow" style="pointer-events: auto; z-index: 1;"
+                    @onclick="TriggerFileSelect">
+                    Select Images
+                </button>
+                <div class="text-white-50">or drop an image to start</div>
+            </div>
             <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple
-                class="select-files" />
+                style="display: none;" />
         </div>
-        <h2 class="mb-0 flex-grow-1 text-center"><img src="VeloLogoText.svg" alt="VELO" style="height: 80px; pointer-events: none;" /></h2>
-        <div style="width: 500px;" class="d-flex justify-content-end">
+    }
+    @if (pendingFiles.Any())
+    {
+        <div class="velo-header p-3 d-flex align-items-center justify-content-between">
+            <div class="upload-zone" style="width: 500px;">
 
+            </div>
+            <h2 class="mb-0 flex-grow-1 text-center"><img src="VeloLogoText.svg" alt="VELO"
+                    style="height: 80px; pointer-events: none;" /></h2>
+            <div style="width: 500px;" class="d-flex justify-content-end">
+
+            </div>
         </div>
-    </div>
+    }
+
     <div class="row h-100 flex-grow-1">
         <div class="col-3 velo-bg p-3 overflow-auto">
 
+
+            <div class="d-flex justify-content-between align-items-center mb-3" style="height: 30px;">
+
+                @if (pendingFiles.Any())
+                {
+                    <input type="file" @onchange="OnFilesSelected" @ref="fileInputRef" id="fileInput" multiple
+                        class="select-files " />
+
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-danger btn-sm" style="width: 80px;" @onclick="ClearAllFiles">🗑️
+                            Clear</button>
+                        <button class="btn btn-success btn-sm" style="width: 80px;" @onclick="DownloadZip">📦 ZIP</button>
+                    </div>
+                }
+            </div>
+
             @if (pendingFiles.Any())
             {
-                <div class="d-flex justify-content-between align-items-center mb-3" style="height: 30px;">
-                    <h5 class="text-muted small text-uppercase mb-0">Selected files (@pendingFiles.Count)</h5>
-                    <div>
-                        <button class="btn btn-danger btn-sm" @onclick="ClearAllFiles">🗑️ Clear All</button>
-                        <button class="btn btn-success btn-sm" @onclick="DownloadZip">📦 ZIP</button>
-                    </div>
-                </div>
+                <h5 class="text-muted small text-uppercase mb-2">Selected files (@pendingFiles.Count)</h5>
 
                 @foreach (var file in pendingFiles)
                 {
@@ -55,10 +110,30 @@
                                 </div>
                             </div>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-sm text-info p-0" @onclick:stopPropagation="true"
-                                    @onclick="() => ResetQuality(file)">⟳</button>
-                                <button class="btn btn-sm text-danger p-0" @onclick:stopPropagation="true"
-                                    @onclick="() => RemoveFile(file)">✕</button>
+                                <button class="btn btn-sm text-primary p-1" @onclick:stopPropagation="true"
+                                    @onclick="() => DownloadSingleFile(file)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                                        style="height: 1em; vertical-align: middle; fill: currentColor; scale: 1.9;">
+                                        <path
+                                            d="M352 96C352 78.3 337.7 64 320 64C302.3 64 288 78.3 288 96L288 306.7L246.6 265.3C234.1 252.8 213.8 252.8 201.3 265.3C188.8 277.8 188.8 298.1 201.3 310.6L297.3 406.6C309.8 419.1 330.1 419.1 342.6 406.6L438.6 310.6C451.1 298.1 451.1 277.8 438.6 265.3C426.1 252.8 405.8 252.8 393.3 265.3L352 306.7L352 96zM160 384C124.7 384 96 412.7 96 448L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 448C544 412.7 515.3 384 480 384L433.1 384L376.5 440.6C345.3 471.8 294.6 471.8 263.4 440.6L206.9 384L160 384zM464 440C477.3 440 488 450.7 488 464C488 477.3 477.3 488 464 488C450.7 488 440 477.3 440 464C440 450.7 450.7 440 464 440z" />
+                                    </svg>
+                                </button>
+                                <button class="btn btn-sm text-primary p-1" @onclick:stopPropagation="true"
+                                    @onclick="() => ResetQuality(file)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"
+                                        style="height: 1em; vertical-align: middle; fill: currentColor; scale: 1.5;">
+                                        <path
+                                            d="M48.5 224H40c-13.3 0-24-10.7-24-24V72c0-9.7 5.8-18.5 14.8-22.2s19.3-1.7 26.2 5.2L98.6 96.6c87.6-86.5 228.7-86.2 315.8 1c87.5 87.5 87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3c-62.2-62.2-162.7-62.5-225.3-1L185 183c6.9 6.9 8.9 17.2 5.2 26.2s-12.5 14.8-22.2 14.8H48.5z" />
+                                    </svg>
+                                </button>
+                                <button class="btn btn-sm text-danger p-1" @onclick:stopPropagation="true"
+                                    @onclick="() => RemoveFile(file)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"
+                                        style="height: 1em; vertical-align: middle; fill: currentColor; scale: 1.9;">
+                                        <path
+                                            d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
 
@@ -80,19 +155,7 @@
         <div class="col-9 p-0 d-flex flex-column h-100 position-relative">
             @if (selectedFile != null)
             {
-                <div class="p-2 d-flex justify-content-between align-items-center">
-                    <div class="ps-2 preview-title" style="height: 30px;">
-                        <span class="small" style="color: #6c757d; text-transform: uppercase !important;">Optimization
-                            preview</span>
-                    </div>
-                    @* @if (selectedFile.Savings.HasValue)
-                    {
-                        var s = selectedFile.Savings.Value;
-                        <span class="badge border @(s >= 0 ? "border-success text-success" : "border-danger text-danger") me-2">
-                            @(s >= 0 ? $"Reduction: -{s:F1}%" : $"Increase: +{Math.Abs(s):F1}%")
-                        </span>
-                    } *@
-                </div>
+      
 
                 <div class="preview-stage @(selectedFile != null ? "border border-primary shadow-glow" : "")">
                     @if (!string.IsNullOrEmpty(selectedFile.Url))
@@ -132,6 +195,7 @@
     private ElementReference veloContainerRef;
     private string? lastZoomInitFileId;
     private bool showingOriginal = false;
+    private bool showHelp = false;
 
 
     private void SelectFile(FileEntry file)
@@ -145,9 +209,10 @@
         if (firstRender)
         {
             await JS.InvokeVoidAsync("enableDragDrop", dropZoneElement, fileInputRef);
+            await JS.InvokeVoidAsync("enablePaste", fileInputRef);
         }
 
-        if (selectedFile != null && selectedFile.FileId != lastZoomInitFileId)
+        if (selectedFile != null && !string.IsNullOrEmpty(selectedFile.Url) && selectedFile.FileId != lastZoomInitFileId)
         {
             await JS.InvokeVoidAsync("previewZoom.init", veloContainerRef);
             lastZoomInitFileId = selectedFile.FileId;
@@ -267,14 +332,32 @@
 
     private async Task DownloadZip()
     {
-        var zipPayload = pendingFiles.Where(f => f.Data != null).Select(r => new
+        using var ms = new MemoryStream();
+        using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, true))
         {
-            fileName = r.Name,
-            data = Convert.ToBase64String(r.Data!)
-        }).ToList();
+            foreach (var file in pendingFiles.Where(f => f.Data != null))
+            {
+                var entry = archive.CreateEntry(file.Name);
+                using var entryStream = entry.Open();
+                await entryStream.WriteAsync(file.Data!, 0, file.Data!.Length);
+            }
+        }
+        ms.Position = 0;
+        using var streamRef = new DotNetStreamReference(ms);
+        await JS.InvokeVoidAsync("downloadFromStream", "images.zip", streamRef);
+    }
 
-        var json = System.Text.Json.JsonSerializer.Serialize(zipPayload);
-        await JS.InvokeVoidAsync("downloadAsZip", json);
+    private async Task TriggerFileSelect()
+    {
+        await JS.InvokeVoidAsync("triggerClick", fileInputRef);
+    }
+
+    private async Task DownloadSingleFile(FileEntry file)
+    {
+        if (!string.IsNullOrEmpty(file.Url))
+        {
+            await JS.InvokeVoidAsync("downloadFile", file.Url, file.Name);
+        }
     }
 
     private async Task ResetQuality(FileEntry file)
