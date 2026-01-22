@@ -138,16 +138,22 @@
                         alt="VELO"
                         class="logo-md"
                     /></h2>
-                <h4 class="text-white-50 mb-4">Choose a service</h4>
+                <h4 class="text-white-50 mb-4">Choose a compression service</h4>
                 <div class="d-grid gap-3 col-10 col-sm-6 col-md-4 col-lg-3 mx-auto">
                     <button
                         class="btn btn-primary btn-lg shadow-glow"
                         id="btnLoadImageCompressor"
-                    >Image Compressor</button>
+                    >Image</button>
                     <button
                         class="btn btn-secondary btn-lg"
                         id="btnLoadAudioCompressor"
-                    >Audio Compressor</button>
+                        disabled
+                    >Audio (Coming Soon!)</button>
+                    <button
+                        class="btn btn-secondary btn-lg"
+                        id="btnLoadAudioCompressor"
+                        disabled
+                    >Video (Coming Soon!)</button>
                 </div>
             </div>
         </div>
@@ -223,9 +229,12 @@
         document.getElementById('btnLoadImageCompressor').addEventListener('click', () => {
             loadComponent('components/ImageCompressor.html');
         });
-        document.getElementById('btnLoadAudioCompressor').addEventListener('click', () => {
-            loadComponent('components/AudioCompressor.html');
-        });
+        // document.getElementById('btnLoadAudioCompressor').addEventListener('click', () => {
+        //     loadComponent('components/AudioCompressor.html');
+        // });
+        // document.getElementById('btnLoadVideoCompressor').addEventListener('click', () => {
+        //     loadComponent('components/AudioCompressor.html');
+        // });
     </script>
 </body>
 
