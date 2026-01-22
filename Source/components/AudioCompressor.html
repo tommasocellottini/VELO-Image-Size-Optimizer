@@ -1,0 +1,154 @@
+<div
+    class="container-fluid vh-100 overflow-hidden velo-bg d-flex flex-column"
+    id="audioCompressorContainer"
+>
+    <!-- Hidden File Input -->
+    <input
+        type="file"
+        id="fileInput"
+        multiple
+        style="display: none;"
+        accept="image/*"
+    />
+    <!-- Initial State Overlay -->
+    <div id="initOverlay">
+        <div
+            class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center init-overlay">
+                <h2 class="text-center"><img
+                        src="assets/VeloLogoText.svg"
+                        alt="VELO"
+                        class="logo-lg"
+                    /></h2>
+                <h2
+                    class="mb-4 text-center"
+                    style="margin-bottom: 8rem !important;"
+                ><img
+                        src="assets/VeloLogoTextAudio.svg"
+                        alt="VELO"
+                        class="logo-md"
+                    /></h2>
+            <button
+                class="btn btn-primary btn-lg shadow-glow z-interactive mb-3"
+                id="btnSelectImages"
+            > Select Audio file </button>
+            <div class="text-white-50 ">or drop one to start</div>
+        </div>
+    </div>
+    <!-- Main App Interface (Hidden initially) -->
+    <div
+        id="appInterface"
+        class="d-none flex-column h-100"
+    >
+        <div class="velo-header p-3 d-flex align-items-center justify-content-between">
+            <div class="upload-zone w-500"></div>
+            <h2 class="mb-0 flex-grow-1 text-center"><img
+                    src="assets/VeloLogoTextImageAudio.svg"
+                    alt="VELO"
+                    class="logo-md"
+                /></h2>
+            <div class="d-flex justify-content-end w-500"></div>
+        </div>
+        <div class="row flex-grow-1 overflow-hidden m-0">
+            <!-- Sidebar -->
+            <div class="col-3 velo-bg p-3 overflow-auto border-end border-secondary">
+                <div class="d-flex justify-content-between align-items-center mb-3 h-30">
+                    <button
+                        class="btn btn-primary btn-sm z-interactive w-80"
+                        id="btnAddImg"
+                    >Add IMG</button>
+                    <div class="d-flex gap-2">
+                        <select
+                            class="form-select form-select-sm bg-dark text-white border-secondary p-0 ps-1 w-80"
+                            id="globalFormat"
+                        >
+                            <option value="jpeg">JPG</option>
+                            <option value="webp">WEBP</option>
+                            <option value="png">PNG</option>
+                        </select>
+                        <button
+                            class="btn btn-danger btn-sm w-80 d-flex justify-content-center align-items-center"
+                            id="btnClear" title="Clear All">
+                            <img src="assets/icons/deleteAll.svg" class="icon" alt="Clear All">
+                        </button>
+                        <button
+                            class="btn btn-success btn-sm w-80 d-flex justify-content-center align-items-center"
+                            id="btnZip" title="Zip All">
+                            <img src="assets/icons/zip.svg" class="icon" alt="Zip All">
+                        </button>
+                    </div>
+                </div>
+                <h5
+                    class="small text-uppercase mb-2"
+                    id="filesCountLabel"
+                >Selected files (0)</h5>
+                <div id="fileListContainer">
+                    <!-- File Items will be injected here via JS -->
+                </div>
+            </div>
+            <!-- Preview Area -->
+            <div
+                class="col-9 velo-bg p-0 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden">
+                <div
+                    id="previewStage"
+                    class="preview-stage d-none border border-2 border-primary shadow-glow"
+                >
+                    <div
+                        class="velo-container"
+                        id="veloContainer"
+                        tabindex="0"
+                    >
+                        <div class="zoom-controls">
+                            <button
+                                class="zoom-btn before-btn"
+                                id="btnShowOriginal"
+                                title="Show Before"
+                            >Before</button>
+                            <button
+                                class="zoom-btn after-btn active"
+                                id="btnShowOptimized"
+                                title="Show After"
+                            >After</button>
+                            <button
+                                class="zoom-btn reset-btn ms-2"
+                                id="btnResetZoom"
+                                title="Reset Zoom"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="icon-md"
+                                    viewBox="0 0 16 16"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"
+                                    />
+                                    <path
+                                        d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                        <div
+                            class="zoom-frame"
+                            id="zoomFrame"
+                        >
+                            <img
+                                src=""
+                                class="frame-img original-image d-none"
+                                id="imgOriginal"
+                                draggable="false"
+                            />
+                            <img
+                                src=""
+                                class="frame-img optimized-image d-block"
+                                id="imgOptimized"
+                                draggable="false"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
