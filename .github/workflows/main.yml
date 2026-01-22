@@ -3,35 +3,31 @@ on:
   push:
     branches: [ main ]
 jobs:
-  build-and-deploy:
+  serve:
+    name: Serve with Nginx (preview)
     runs-on: ubuntu-latest
+    # Trigger manually via workflow_dispatch for previewing with nginx
+    if: github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 7.0.x
-
-      - name: Install WASM Tools
-        # Installiamo esplicitamente la versione 7 dei tool
-        run: dotnet workload install wasm-tools-net7
-
-      - name: Restore Workloads
-        # Questo è il comando specifico suggerito dall'errore
-        run: dotnet workload restore
-
-      - name: Publish
-        run: dotnet publish -c Release -o output
-
-      - name: Fix paths
+      - name: Install Nginx
         run: |
-          sed -i 's/<base href="\/" \/>/<base href="\/VELO-Image-Size-Optimizer\/" \/>/g' output/wwwroot/index.html
-          cp output/wwwroot/index.html output/wwwroot/404.html
-          touch output/wwwroot/.nojekyll
+          sudo apt-get update
+          sudo apt-get install -y nginx
 
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: output/wwwroot
-          branch: gh-pages
+      - name: Copy site files to nginx root
+        run: |
+          sudo rm -rf /var/www/html/*
+          sudo cp -r Project/* /var/www/html/
+          sudo chown -R www-data:www-data /var/www/html || true
+
+      - name: Start Nginx
+        run: |
+          sudo systemctl restart nginx || sudo service nginx start
+
+      - name: Verify index is served
+        run: |
+          sleep 2
+          curl --fail http://localhost/ -o /tmp/index.html
+          echo "Index served OK"
