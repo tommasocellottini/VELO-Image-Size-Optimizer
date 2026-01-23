@@ -4,7 +4,7 @@ const els = {};
 const initApp = () => {
     // Cache elements by ID
     const ids = [
-        'imageCompressorContainer', 'audioCompressorContainer', 'videoCompressorContainer', 
+        'imageCompressorContainer', 'audioCompressorContainer', 'videoCompressorContainer',
         'fileInput', 'initOverlay', 'appInterface',
         'fileListContainer', 'previewStage', 'imgOriginal', 'imgOptimized',
         'zoomFrame', 'veloContainer', 'filesCountLabel', 'privacyDate',
@@ -98,4 +98,76 @@ function setupEventListeners() {
         window.addEventListener('mousemove', drag);
         window.addEventListener('mouseup', stopDrag);
     }
+
+    function loadComponent(componentUrl) {
+        console.log(`Tentativo di caricamento: ${componentUrl}`);
+        fetch(componentUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Could not load ${componentUrl}: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                console.log("HTML ricevuto con successo");
+
+                const placeholder = document.getElementById('component-placeholder');
+                const selector = document.getElementById('serviceSelector');
+
+                if (selector) selector.classList.add('d-none');
+                if (placeholder) {
+                    placeholder.innerHTML = html;
+                    console.log("Componente iniettato nel placeholder"); // DEBUG
+                } else {
+                    console.error("ERRORE: #component-placeholder non trovato!");
+                }
+
+                // document.getElementById('serviceSelector').classList.add('hidden');
+                document.dispatchEvent(new Event('velo-ready'));
+            })
+            .catch(err => {
+                console.error('Failed to load component:', err);
+                const selector = document.getElementById('serviceSelector');
+                const placeholder = document.getElementById('component-placeholder');
+
+                // Hide selector to show error clearly
+                if (selector) selector.classList.add('d-none');
+
+                if (placeholder) {
+                    placeholder.innerHTML = `
+                            <div class="d-flex flex-column justify-content-center align-items-center vh-100 text-center text-danger">
+                                <h3 class="mb-3">⚠️ Error Loading Component</h3>
+                                <p class="lead">Browsers block loading external files when opening HTML directly via <code>file://</code>.</p>
+                                <p class="text-white-50">Please serve this project using a local web server (e.g., VS Code Live Server).</p>
+                                <button class="btn btn-outline-light mt-3" onclick="location.reload()">Reload</button>
+                            </div>
+                        `;
+                }
+            });
+    }
+
+    document.getElementById('btnHome').addEventListener('click', () => {
+        const placeholder = document.getElementById('component-placeholder');
+        const selector = document.getElementById('serviceSelector');
+
+        if (placeholder) {
+            placeholder.innerHTML = "";
+            console.log("Componente iniettato nel placeholder"); // DEBUG
+        } else {
+            console.error("ERRORE: #component-placeholder non trovato!");
+        }
+
+        if (selector) selector.classList.remove('d-none');
+        // document.getElementById('serviceSelector').classList.remove('hidden');
+    });
+
+    document.getElementById('btnLoadImageCompressor').addEventListener('click', () => {
+        loadComponent('components/ImageCompressor.html');
+    });
+    // document.getElementById('btnLoadAudioCompressor').addEventListener('click', () => {
+    //     loadComponent('components/AudioCompressor.html');
+    // });
+    // document.getElementById('btnLoadVideoCompressor').addEventListener('click', () => {
+    //     loadComponent('components/AudioCompressor.html');
+    // });
 }

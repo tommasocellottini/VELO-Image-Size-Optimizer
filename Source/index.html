@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VELO - Image Size Optimizer</title>
+    <title>VELO - Local Media Compression</title>
     <link rel="icon" href="assets/favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -28,7 +28,7 @@
                         uploaded to any server.</small>
                     <hr class="border-secondary my-2">
                     <small class="text-white-50"> This project is open-source. You can find the code on <a
-                            href="https://github.com/tommasocellottini/VELO-Image-Size-Optimizer" target="_blank"
+                            href="https://github.com/tommasocellottini/VELO-Local-Media-Compression" target="_blank"
                             class="text-white">GitHub</a>. </small>
                     <hr class="border-secondary my-2">
                     <small class="text-white-50">Made by Tommaso Cellottini - 2026</small>
@@ -45,7 +45,7 @@
                 <h3 class="mb-4 fw-bold">Privacy Policy</h3>
                 <p class="text-white-50 mb-4">Last updated: 21/01/2026</p>
                 <h5 class="text-primary mb-2">1. Introduction</h5>
-                <p class="small">Welcome to VELO Image Size Optimizer. We are committed to protecting your privacy. This
+                <p class="small">Welcome to VELO Local Media Compression. We are committed to protecting your privacy. This
                     Privacy Policy explains how our application handles your data.</p>
                 <h5 class="text-primary mb-2 mt-3">2. Local Processing (Client-Side)</h5>
                 <p class="small"><strong>VELO is designed with privacy as a core feature.</strong> Unlike many other
@@ -72,7 +72,7 @@
                     standard server logs (IP address, user agent) for security. This is standard internet behavior.</p>
                 <h5 class="text-primary mb-2 mt-3">5. Open Source</h5>
                 <p class="small">VELO is an open-source project. You can verify the code on our <a
-                        href="https://github.com/tommasocellottini/VELO-Image-Size-Optimizer" target="_blank"
+                        href="https://github.com/tommasocellottini/VELO-Local-Media-Compression" target="_blank"
                         class="text-info">GitHub repository</a>.</p>
                 <h5 class="text-primary mb-2 mt-3">6. Contact</h5>
                 <p class="small">If you have any questions, please open an issue on our GitHub repository.</p>
@@ -89,7 +89,7 @@
                     <button class="btn btn-blue btn-lg shadow-glow-blue" id="btnLoadImageCompressor">Image</button>
                     <button class="btn btn-secondary btn-lg" id="btnLoadAudioCompressor" disabled>Audio (Coming
                         Soon!)</button>
-                    <button class="btn btn-secondary btn-lg" id="btnLoadAudioCompressor" disabled>Video (Coming
+                    <button class="btn btn-secondary btn-lg" id="btnLoadVideoCompressor" disabled>Video (Coming
                         Soon!)</button>
                 </div>
             </div>
@@ -108,77 +108,7 @@
     <script src="js/utils.js"></script>
     <script src="js/zoom.js"></script>
     <script>
-        function loadComponent(componentUrl) {
-            console.log(`Tentativo di caricamento: ${componentUrl}`);
-            fetch(componentUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Could not load ${componentUrl}: ${response.statusText}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    console.log("HTML ricevuto con successo");
 
-                    const placeholder = document.getElementById('component-placeholder');
-                    const selector = document.getElementById('serviceSelector');
-
-                    if (selector) selector.classList.add('d-none');
-                    if (placeholder) {
-                        placeholder.innerHTML = html;
-                        console.log("Componente iniettato nel placeholder"); // DEBUG
-                    } else {
-                        console.error("ERRORE: #component-placeholder non trovato!");
-                    }
-
-                    // document.getElementById('serviceSelector').classList.add('hidden');
-                    document.dispatchEvent(new Event('velo-ready'));
-                })
-                .catch(err => {
-                    console.error('Failed to load component:', err);
-                    const selector = document.getElementById('serviceSelector');
-                    const placeholder = document.getElementById('component-placeholder');
-
-                    // Hide selector to show error clearly
-                    if (selector) selector.classList.add('d-none');
-
-                    if (placeholder) {
-                        placeholder.innerHTML = `
-                            <div class="d-flex flex-column justify-content-center align-items-center vh-100 text-center text-danger">
-                                <h3 class="mb-3">⚠️ Error Loading Component</h3>
-                                <p class="lead">Browsers block loading external files when opening HTML directly via <code>file://</code>.</p>
-                                <p class="text-white-50">Please serve this project using a local web server (e.g., VS Code Live Server).</p>
-                                <button class="btn btn-outline-light mt-3" onclick="location.reload()">Reload</button>
-                            </div>
-                        `;
-                    }
-                });
-        }
-
-        document.getElementById('btnHome').addEventListener('click', () => {
-            const placeholder = document.getElementById('component-placeholder');
-            const selector = document.getElementById('serviceSelector');
-
-            if (placeholder) {
-                placeholder.innerHTML = "";
-                console.log("Componente iniettato nel placeholder"); // DEBUG
-            } else {
-                console.error("ERRORE: #component-placeholder non trovato!");
-            }
-
-            if (selector) selector.classList.remove('d-none');
-            // document.getElementById('serviceSelector').classList.remove('hidden');
-        });
-
-        document.getElementById('btnLoadImageCompressor').addEventListener('click', () => {
-            loadComponent('components/ImageCompressor.html');
-        });
-        // document.getElementById('btnLoadAudioCompressor').addEventListener('click', () => {
-        //     loadComponent('components/AudioCompressor.html');
-        // });
-        // document.getElementById('btnLoadVideoCompressor').addEventListener('click', () => {
-        //     loadComponent('components/AudioCompressor.html');
-        // });
     </script>
 </body>
 
