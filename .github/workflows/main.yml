@@ -1,33 +1,37 @@
-name: Deploy Velo
+name: Deploy to GitHub Pages
+
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  serve:
-    name: Serve with Nginx (preview)
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    # Trigger manually via workflow_dispatch for previewing with nginx
-    if: github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Install Nginx
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y nginx
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
-      - name: Copy site files to nginx root
-        run: |
-          sudo rm -rf /var/www/html/*
-          sudo cp -r Project/* /var/www/html/
-          sudo chown -R www-data:www-data /var/www/html || true
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'Source'
 
-      - name: Start Nginx
-        run: |
-          sudo systemctl restart nginx || sudo service nginx start
-
-      - name: Verify index is served
-        run: |
-          sleep 2
-          curl --fail http://localhost/ -o /tmp/index.html
-          echo "Index served OK"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
