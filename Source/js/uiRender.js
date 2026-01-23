@@ -28,7 +28,7 @@ function renderFileList() {
     state.files.forEach(file => {
         const isSelected = file.id === state.selectedFileId;
         const div = document.createElement('div');
-        div.className = `file-item p-2 mb-2 rounded ${isSelected ? 'active border border-2 border-primary shadow-glow' : 'border border-secondary'}`;
+        div.className = `file-item p-2 mb-2 rounded ${isSelected ? 'active border border-2 border-primary shadow-glow-blue' : 'border border-secondary'}`;
         div.style.cursor = 'pointer';
         div.onclick = () => { state.selectedFileId = file.id; updateUI(); };
 
