@@ -69,6 +69,7 @@
                             <option value="jpeg">JPG</option>
                             <option value="webp">WEBP</option>
                             <option value="png">PNG</option>
+                            <option value="avif">AVIF</option>
                         </select>
                         <button
                             class="btn btn-red  btn-sm w-80 d-flex justify-content-center align-items-center"
@@ -83,6 +84,11 @@
                         >Zip All
                         </button>
                     </div>
+                </div>
+                <div class="d-flex align-items-center mb-3 gap-2">
+                    <label for="globalMaxWidth" class="text-white-50 small text-nowrap">Max Width:</label>
+                    <input type="number" id="globalMaxWidth" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Auto" min="100">
+                    <span class="text-white-50 small">px</span>
                 </div>
                 <h5
                     class="small text-uppercase mb-2"
@@ -99,6 +105,12 @@
                     id="previewStage"
                     class="preview-stage d-none border border-2 border-primary shadow-glow-blue"
                 >
+                    <!-- Layer Panel (Pro Mode) -->
+                    <div id="layerPanel" class="layer-panel d-none">
+                        <h6 class="text-white small mb-2">Compression Layers</h6>
+                        <div id="layerList" class="d-flex flex-column gap-1"></div>
+                    </div>
+
                     <div
                         class="velo-container"
                         id="veloContainer"

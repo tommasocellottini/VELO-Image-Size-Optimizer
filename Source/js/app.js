@@ -10,7 +10,7 @@ const initApp = () => {
         'zoomFrame', 'veloContainer', 'filesCountLabel', 'privacyDate',
         'btnAbout', 'modalAbout', 'backdropAbout', 'btnCloseAbout',
         'modalPrivacy', 'backdropPrivacy', 'btnClosePrivacy', 'linkPrivacy',
-        'btnSelectImages', 'btnAddImg', 'globalFormat', 'btnClear', 'btnZip',
+        'btnSelectImages', 'btnAddImg', 'globalFormat', 'globalMaxWidth', 'btnClear', 'btnZip',
         'btnShowOriginal', 'btnShowOptimized', 'btnResetZoom'
     ];
 
@@ -77,6 +77,14 @@ function setupEventListeners() {
         state.globalFormat = e.target.value;
         state.files.forEach(f => {
             f.format = state.globalFormat;
+            processFile(f);
+        });
+    };
+    if (els.globalMaxWidth) els.globalMaxWidth.oninput = (e) => {
+        const val = parseInt(e.target.value);
+        state.maxWidth = (val > 0) ? val : null;
+        // Debounce could be added here for performance, but for now direct update:
+        state.files.forEach(f => {
             processFile(f);
         });
     };

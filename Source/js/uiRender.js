@@ -27,6 +27,7 @@ function renderFileList() {
     
     state.files.forEach(file => {
         const isSelected = file.id === state.selectedFileId;
+        const isPng = file.format === 'png';
         const div = document.createElement('div');
         div.className = `file-item p-2 mb-2 rounded ${isSelected ? 'active border border-2 border-primary shadow-glow-blue' : 'border border-secondary'}`;
         div.style.cursor = 'pointer';
@@ -60,13 +61,21 @@ function renderFileList() {
                 <div class="col-auto">
                     <select class="form-select form-select-sm bg-dark text-white border-secondary p-0 ps-1 select-xs file-format">
                         <option value="jpeg" ${file.format === 'jpeg' ? 'selected' : ''}>JPG</option>
-                        <option value="webp" ${file.format === 'webp' ? 'selected' : ''}>WEBP</option>
+                        <option value="webp" ${file.format === 'webp' ? 'selected' : ''} ${!state.supportedFormats.webp ? 'disabled' : ''}>WEBP${!state.supportedFormats.webp ? ' (N/A)' : ''}</option>
                         <option value="png" ${file.format === 'png' ? 'selected' : ''}>PNG</option>
+                        <option value="avif" ${file.format === 'avif' ? 'selected' : ''} ${!state.supportedFormats.avif ? 'disabled' : ''}>AVIF${!state.supportedFormats.avif ? ' (N/A)' : ''}</option>
                     </select>
                 </div>
                 <div class="col d-flex align-items-center gap-2">
-                    <input type="range" class="form-range file-quality" min="1" max="100" step="1" value="${file.quality}">
-                    <span class="badge bg-primary badge-xs">${file.quality}%</span>
+                    <div class="form-check form-switch d-flex align-items-center gap-1 m-0" style="min-height: 24px;" onclick="event.stopPropagation()">
+                        <input class="form-check-input file-mode-switch" type="checkbox" role="switch" id="switch-${file.id}" style="width: 30px; height: 16px; margin-top: 0;" ${file.mode === 'pro' ? 'checked' : ''}>
+                        <label class="form-check-label small text-warning fw-bold" for="switch-${file.id}" style="font-size: 0.7rem; cursor: pointer;">Pro</label>
+                    </div>
+                    <div class="d-flex align-items-center flex-grow-1 gap-1 border-start border-secondary ps-2 ms-1 ${file.mode === 'pro' ? 'opacity-25' : ''}">
+                        <span class="text-white-50 text-uppercase" style="font-size: 0.6rem; letter-spacing: 0.5px;">Simple</span>
+                        <input type="range" class="form-range file-quality" min="1" max="100" step="1" value="${file.mode === 'simple' ? file.quality : (file.simpleQuality || 75)}" ${isPng || file.mode === 'pro' ? 'disabled' : ''}>
+                    </div>
+                    <span class="badge bg-primary badge-xs">${isPng ? 'Lossless' : file.quality + '%'}</span>
                 </div>
             </div>
         `;
@@ -84,6 +93,15 @@ function renderFileList() {
             downloadSingle(file);
         };
         
+        const modeSwitch = div.querySelector('.file-mode-switch');
+        modeSwitch.onchange = async (e) => {
+            e.stopPropagation();
+            const isPro = e.target.checked;
+            modeSwitch.disabled = true; // Previene click rapidi
+            await switchFileMode(file, isPro);
+            modeSwitch.disabled = false;
+        };
+
         const formatSel = div.querySelector('.file-format');
         formatSel.onclick = (e) => e.stopPropagation();
         formatSel.onchange = (e) => { file.format = e.target.value; processFile(file); };
@@ -91,12 +109,75 @@ function renderFileList() {
         const qualityRange = div.querySelector('.file-quality');
         qualityRange.onclick = (e) => e.stopPropagation();
         qualityRange.oninput = (e) => { 
+            if (file.mode === 'pro') return;
             file.quality = parseInt(e.target.value); 
+            file.simpleQuality = file.quality; // Aggiorna la memoria Simple
             div.querySelector('.badge').textContent = file.quality + '%';
         };
         qualityRange.onchange = () => processFile(file); // Commit change on release
 
         els.fileListContainer.appendChild(div);
+    });
+}
+
+function renderLayerPanel(file) {
+    const panel = document.getElementById('layerPanel');
+    const list = document.getElementById('layerList');
+    
+    if (!file || file.mode !== 'pro' || !file.layers) {
+        panel.classList.add('d-none');
+        return;
+    }
+
+    panel.classList.remove('d-none');
+    list.innerHTML = '';
+
+    file.layers.forEach((layer, index) => {
+        const div = document.createElement('div');
+        div.className = 'layer-item p-2 rounded d-flex flex-column gap-1';
+        
+        // Calculate percentage of image covered
+        const totalPixels = file.processedSource ? (file.processedSource.width * file.processedSource.height) : 1;
+        const coverage = ((layer.pixelCount / totalPixels) * 100).toFixed(1);
+        const isLast = index === file.layers.length - 1;
+
+        div.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-1 text-truncate" style="max-width: 70%;">
+                    <span class="small fw-bold text-white text-truncate" title="${layer.name}">${layer.name || 'Layer ' + (index + 1)}</span>
+                    ${!isLast ? `<button class="btn btn-link text-white-50 p-0 ms-1 btn-merge-down" title="Merge Down" style="line-height: 0;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg></button>` : ''}
+                </div>
+                <span class="badge bg-secondary badge-xs">${coverage}%</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="range" class="form-range layer-quality" min="10" max="100" step="5" value="${layer.quality}">
+                <span class="small text-white-50" style="width: 30px; text-align: right;">${layer.quality}%</span>
+            </div>
+        `;
+
+        // Highlight on hover
+        div.onmouseenter = () => highlightLayer(file, index, true);
+        div.onmouseleave = () => highlightLayer(file, index, false);
+
+        // Quality Change
+        const range = div.querySelector('.layer-quality');
+        range.onchange = async (e) => {
+            const val = parseInt(e.target.value);
+            div.style.opacity = '0.5'; // Loading state
+            await updateLayerQuality(file, index, val);
+            div.style.opacity = '1';
+        };
+        range.oninput = (e) => div.querySelector('span.text-white-50').textContent = e.target.value + '%';
+
+        if (!isLast) {
+            const btnMerge = div.querySelector('.btn-merge-down');
+            btnMerge.onclick = (e) => {
+                e.stopPropagation();
+                mergeLayerDown(file, index);
+            };
+        }
+
+        list.appendChild(div);
     });
 }
 
@@ -118,6 +199,7 @@ function renderPreview() {
     if (els.imgOptimized && file.compressedUrl) els.imgOptimized.src = file.compressedUrl;
 
     setPreviewMode(state.showingOriginal);
+    renderLayerPanel(file);
 }
 
 function setPreviewMode(showOriginal) {
@@ -135,4 +217,46 @@ function setPreviewMode(showOriginal) {
     }
 }
 
+function highlightLayer(file, layerIndex, show) {
+    if (!els.veloContainer || !file.layers) return;
+    
+    // Remove existing highlight
+    const existing = document.getElementById('layerHighlight');
+    if (existing) existing.remove();
 
+    if (!show) return;
+
+    // Create highlight canvas overlay
+    const canvas = document.createElement('canvas');
+    canvas.id = 'layerHighlight';
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.pointerEvents = 'none'; // Pass through clicks
+    canvas.style.zIndex = '50';
+    canvas.style.opacity = '0.6';
+    
+    // Match dimensions of the image in the zoom frame
+    const img = els.imgOptimized;
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.className = 'frame-img'; // Inherit zoom transform
+
+    const ctx = canvas.getContext('2d');
+    const mask = file.layers[layerIndex].mask;
+    const idata = ctx.createImageData(canvas.width, canvas.height);
+    const d = idata.data;
+
+    for (let i = 0; i < mask.length; i++) {
+        if (mask[i] === 1) {
+            const idx = i * 4;
+            d[idx] = 0;   // R
+            d[idx+1] = 255; // G (Green highlight)
+            d[idx+2] = 0;   // B
+            d[idx+3] = 150; // Alpha
+        }
+    }
+    ctx.putImageData(idata, 0, 0);
+    
+    document.getElementById('zoomFrame').appendChild(canvas);
+}
