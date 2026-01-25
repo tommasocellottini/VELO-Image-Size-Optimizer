@@ -57,26 +57,24 @@ function renderFileList() {
                     </button>
                 </div>
             </div>
-            <div class="row align-items-center g-2 border-top border-secondary pt-2 mt-1">
-                <div class="col-auto">
-                    <select class="form-select form-select-sm bg-dark text-white border-secondary p-0 ps-1 select-xs file-format">
-                        <option value="jpeg" ${file.format === 'jpeg' ? 'selected' : ''}>JPG</option>
-                        <option value="webp" ${file.format === 'webp' ? 'selected' : ''} ${!state.supportedFormats.webp ? 'disabled' : ''}>WEBP${!state.supportedFormats.webp ? ' (N/A)' : ''}</option>
-                        <option value="png" ${file.format === 'png' ? 'selected' : ''}>PNG</option>
-                        <option value="avif" ${file.format === 'avif' ? 'selected' : ''} ${!state.supportedFormats.avif ? 'disabled' : ''}>AVIF${!state.supportedFormats.avif ? ' (N/A)' : ''}</option>
-                    </select>
+            <div class="d-flex justify-content-between align-items-center border-top border-secondary pt-2 mt-1">
+                <select class="form-select form-select-sm bg-dark text-white border-secondary p-0 ps-1 select-xs file-format">
+                    <option value="jpeg" ${file.format === 'jpeg' ? 'selected' : ''}>JPG</option>
+                    <option value="webp" ${file.format === 'webp' ? 'selected' : ''} ${!state.supportedFormats.webp ? 'disabled' : ''}>WEBP${!state.supportedFormats.webp ? ' (N/A)' : ''}</option>
+                    <option value="png" ${file.format === 'png' ? 'selected' : ''}>PNG</option>
+                    <option value="avif" ${file.format === 'avif' ? 'selected' : ''} ${!state.supportedFormats.avif ? 'disabled' : ''}>AVIF${!state.supportedFormats.avif ? ' (N/A)' : ''}</option>
+                </select>
+                <div class="form-check form-switch d-flex align-items-center gap-1 m-0" style="min-height: 24px;" onclick="event.stopPropagation()">
+                    <input class="form-check-input file-mode-switch" type="checkbox" role="switch" id="switch-${file.id}" style="width: 30px; height: 16px; margin-top: 0;" ${file.mode === 'pro' ? 'checked' : ''}>
+                    <label class="form-check-label small text-warning fw-bold" for="switch-${file.id}" style="font-size: 0.7rem; cursor: pointer;">Pro</label>
                 </div>
-                <div class="col d-flex align-items-center gap-2">
-                    <div class="form-check form-switch d-flex align-items-center gap-1 m-0" style="min-height: 24px;" onclick="event.stopPropagation()">
-                        <input class="form-check-input file-mode-switch" type="checkbox" role="switch" id="switch-${file.id}" style="width: 30px; height: 16px; margin-top: 0;" ${file.mode === 'pro' ? 'checked' : ''}>
-                        <label class="form-check-label small text-warning fw-bold" for="switch-${file.id}" style="font-size: 0.7rem; cursor: pointer;">Pro</label>
-                    </div>
-                    <div class="d-flex align-items-center flex-grow-1 gap-1 border-start border-secondary ps-2 ms-1 ${file.mode === 'pro' ? 'opacity-25' : ''}">
-                        <span class="text-white-50 text-uppercase" style="font-size: 0.6rem; letter-spacing: 0.5px;">Simple</span>
-                        <input type="range" class="form-range file-quality" min="1" max="100" step="1" value="${file.mode === 'simple' ? file.quality : (file.simpleQuality || 75)}" ${isPng || file.mode === 'pro' ? 'disabled' : ''}>
-                    </div>
-                    <span class="badge bg-primary badge-xs">${isPng ? 'Lossless' : file.quality + '%'}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2">
+                <div class="d-flex align-items-center flex-grow-1 gap-1 ${file.mode === 'pro' ? 'opacity-25' : ''}">
+                    <span class="text-white-50 text-uppercase" style="font-size: 0.6rem; letter-spacing: 0.5px;">Simple</span>
+                    <input type="range" class="form-range file-quality" min="1" max="100" step="1" value="${file.mode === 'simple' ? file.quality : (file.simpleQuality || 75)}" ${isPng || file.mode === 'pro' ? 'disabled' : ''}>
                 </div>
+                <span class="badge bg-primary badge-xs">${isPng ? 'Lossless' : file.quality + '%'}</span>
             </div>
         `;
 
@@ -122,7 +120,6 @@ function renderFileList() {
 
 function renderLayerPanel(file) {
     const panel = document.getElementById('layerPanel');
-    const list = document.getElementById('layerList');
     
     if (!file || file.mode !== 'pro' || !file.layers) {
         panel.classList.add('d-none');
@@ -130,6 +127,34 @@ function renderLayerPanel(file) {
     }
 
     panel.classList.remove('d-none');
+    
+    // Ricostruisce l'header del pannello con il bottone Merge
+    panel.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-white small m-0">Compression Layers</h6>
+            <button id="btnMergeLayers" class="btn btn-primary btn-sm py-0" style="font-size: 0.75rem;" disabled>Merge</button>
+        </div>
+        <div id="layerList" class="d-flex flex-column gap-1"></div>
+    `;
+
+    const list = document.getElementById('layerList');
+    const btnMerge = document.getElementById('btnMergeLayers');
+
+    // Gestione click Merge
+    btnMerge.onclick = () => {
+        const checkboxes = list.querySelectorAll('.layer-checkbox');
+        const indices = [];
+        checkboxes.forEach((cb, idx) => {
+            if (cb.checked) indices.push(idx);
+        });
+        mergeLayers(file, indices);
+    };
+
+    const updateMergeButton = () => {
+        const checkedCount = list.querySelectorAll('.layer-checkbox:checked').length;
+        btnMerge.disabled = checkedCount < 2;
+    };
+
     list.innerHTML = '';
 
     file.layers.forEach((layer, index) => {
@@ -139,13 +164,12 @@ function renderLayerPanel(file) {
         // Calculate percentage of image covered
         const totalPixels = file.processedSource ? (file.processedSource.width * file.processedSource.height) : 1;
         const coverage = ((layer.pixelCount / totalPixels) * 100).toFixed(1);
-        const isLast = index === file.layers.length - 1;
 
         div.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-1 text-truncate" style="max-width: 70%;">
+                <div class="d-flex align-items-center gap-2 text-truncate" style="max-width: 70%;">
+                    <input type="checkbox" class="form-check-input layer-checkbox m-0" style="width: 14px; height: 14px; cursor: pointer;">
                     <span class="small fw-bold text-white text-truncate" title="${layer.name}">${layer.name || 'Layer ' + (index + 1)}</span>
-                    ${!isLast ? `<button class="btn btn-link text-white-50 p-0 ms-1 btn-merge-down" title="Merge Down" style="line-height: 0;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg></button>` : ''}
                 </div>
                 <span class="badge bg-secondary badge-xs">${coverage}%</span>
             </div>
@@ -158,6 +182,13 @@ function renderLayerPanel(file) {
         // Highlight on hover
         div.onmouseenter = () => highlightLayer(file, index, true);
         div.onmouseleave = () => highlightLayer(file, index, false);
+        
+        // Checkbox logic
+        const checkbox = div.querySelector('.layer-checkbox');
+        checkbox.onclick = (e) => {
+            e.stopPropagation();
+            updateMergeButton();
+        };
 
         // Quality Change
         const range = div.querySelector('.layer-quality');
@@ -168,14 +199,6 @@ function renderLayerPanel(file) {
             div.style.opacity = '1';
         };
         range.oninput = (e) => div.querySelector('span.text-white-50').textContent = e.target.value + '%';
-
-        if (!isLast) {
-            const btnMerge = div.querySelector('.btn-merge-down');
-            btnMerge.onclick = (e) => {
-                e.stopPropagation();
-                mergeLayerDown(file, index);
-            };
-        }
 
         list.appendChild(div);
     });

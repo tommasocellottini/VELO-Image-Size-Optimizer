@@ -275,26 +275,35 @@ async function updateLayerQuality(fileEntry, layerIndex, newQuality) {
     await generateComposite(fileEntry);
 }
 
-async function mergeLayerDown(fileEntry, index) {
-    if (!fileEntry.layers || index >= fileEntry.layers.length - 1) return;
+async function mergeLayers(fileEntry, indices) {
+    if (!fileEntry.layers || indices.length < 2) return;
 
-    const topLayer = fileEntry.layers[index];
-    const bottomLayer = fileEntry.layers[index + 1];
+    // Ordina decrescente per rimuovere senza alterare gli indici precedenti
+    indices.sort((a, b) => b - a);
 
-    // Merge masks: pixels from topLayer go to bottomLayer
-    for (let i = 0; i < topLayer.mask.length; i++) {
-        if (topLayer.mask[i] === 1) {
-            bottomLayer.mask[i] = 1;
+    // Il target è il layer più in basso (indice più alto tra quelli selezionati)
+    const targetIndex = indices[0];
+    const targetLayer = fileEntry.layers[targetIndex];
+
+    // Unisci gli altri layer nel target
+    for (let i = 1; i < indices.length; i++) {
+        const sourceIndex = indices[i];
+        const sourceLayer = fileEntry.layers[sourceIndex];
+
+        // Merge mask (OR logico)
+        for (let k = 0; k < sourceLayer.mask.length; k++) {
+            if (sourceLayer.mask[k] === 1) {
+                targetLayer.mask[k] = 1;
+            }
         }
+        targetLayer.pixelCount += sourceLayer.pixelCount;
+
+        // Rimuovi il layer sorgente
+        fileEntry.layers.splice(sourceIndex, 1);
     }
-    bottomLayer.pixelCount += topLayer.pixelCount;
 
-    // Update name to reflect merge (e.g. "Smooth + Soft Texture")
-    bottomLayer.name = `${topLayer.name.split(' + ')[0]} + ${bottomLayer.name}`;
-
-    // Remove top layer and invalidate bottom layer blob
-    fileEntry.layers.splice(index, 1);
-    bottomLayer.blob = null;
+    targetLayer.name = "Merged Layer";
+    targetLayer.blob = null; // Invalida blob per rigenerazione
 
     await generateComposite(fileEntry);
     updateUI();
