@@ -58,12 +58,13 @@
             <div class="col-3 velo-bg p-3 overflow-auto ">
                 <div class="d-flex justify-content-between align-items-center mb-3 h-30">
                     <button
-                        class="btn btn-blue shadow-glow-blue btn-sm z-interactive w-80"
+                        class="btn btn-blue border-normal  btn-sm z-interactive w-80"
                         id="btnAddImg"
                     >Add IMG</button>
                     <div class="d-flex gap-2">
                         <select
-                            class="form-select form-select-sm bg-dark text-white border-secondary  p-0 ps-1 w-80"
+                            class="form-select form-select-sm text-white border-normal  p-0 ps-1 w-80"
+                            style="background-color: transparent;"
                             id="globalFormat"
                         >
                             <option value="jpeg">JPG</option>
@@ -85,11 +86,6 @@
                         </button>
                     </div>
                 </div>
-                <div class="d-flex align-items-center mb-3 gap-2">
-                    <label for="globalMaxWidth" class="text-white-50 small text-nowrap">Max Width:</label>
-                    <input type="number" id="globalMaxWidth" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Auto" min="100">
-                    <span class="text-white-50 small">px</span>
-                </div>
                 <h5
                     class="small text-uppercase mb-2"
                     id="filesCountLabel"
@@ -103,11 +99,11 @@
                 class="col-9 velo-bg p-0 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden">
                 <div
                     id="previewStage"
-                    class="preview-stage d-none border border-2 border-primary shadow-glow-blue"
+                    class="preview-stage d-none border-normal   "
                 >
                     <!-- Layer Panel (Pro Mode) -->
                     <div id="layerPanel" class="layer-panel d-none">
-                        <h6 class="text-white small mb-2">Compression Layers</h6>
+                        <h6 class="text-white small mb-2">Manual Mode Layers</h6>
                         <div id="layerList" class="d-flex flex-column gap-1"></div>
                     </div>
 

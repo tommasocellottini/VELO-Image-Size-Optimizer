@@ -58,20 +58,23 @@ function renderFileList() {
                 </div>
             </div>
             <div class="d-flex justify-content-between align-items-center border-top border-secondary pt-2 mt-1">
-                <select class="form-select form-select-sm bg-dark text-white border-secondary p-0 ps-1 select-xs file-format">
+                <select class="form-select form-select-sm text-white border-normal select-xs p-0 ps-1 file-format" style="background-color: transparent; ">
                     <option value="jpeg" ${file.format === 'jpeg' ? 'selected' : ''}>JPG</option>
                     <option value="webp" ${file.format === 'webp' ? 'selected' : ''} ${!state.supportedFormats.webp ? 'disabled' : ''}>WEBP${!state.supportedFormats.webp ? ' (N/A)' : ''}</option>
                     <option value="png" ${file.format === 'png' ? 'selected' : ''}>PNG</option>
                     <option value="avif" ${file.format === 'avif' ? 'selected' : ''} ${!state.supportedFormats.avif ? 'disabled' : ''}>AVIF${!state.supportedFormats.avif ? ' (N/A)' : ''}</option>
                 </select>
-                <div class="form-check form-switch d-flex align-items-center gap-1 m-0" style="min-height: 24px;" onclick="event.stopPropagation()">
-                    <input class="form-check-input file-mode-switch" type="checkbox" role="switch" id="switch-${file.id}" style="width: 30px; height: 16px; margin-top: 0;" ${file.mode === 'pro' ? 'checked' : ''}>
-                    <label class="form-check-label small text-warning fw-bold" for="switch-${file.id}" style="font-size: 0.7rem; cursor: pointer;">Pro</label>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm fw-bold file-mode-auto ${file.mode === 'simple' ? 'btn-warning shadow-glow-yellow' : 'btn-outline-warning'}" style="width: 70px; font-size: 0.7rem; padding: 0.1rem 0.5rem;" title="Automatic global quality.">
+                        Auto
+                    </button>
+                    <button class="btn btn-sm fw-bold file-mode-manual ${file.mode === 'pro' ? 'btn-warning shadow-glow-yellow' : 'btn-outline-warning'}" style="width: 70px; font-size: 0.7rem; padding: 0.1rem 0.5rem;" title="Manual layer-based optimization.">
+                        Manual
+                    </button>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2 mt-2">
                 <div class="d-flex align-items-center flex-grow-1 gap-1 ${file.mode === 'pro' ? 'opacity-25' : ''}">
-                    <span class="text-white-50 text-uppercase" style="font-size: 0.6rem; letter-spacing: 0.5px;">Simple</span>
                     <input type="range" class="form-range file-quality" min="1" max="100" step="1" value="${file.mode === 'simple' ? file.quality : (file.simpleQuality || 75)}" ${isPng || file.mode === 'pro' ? 'disabled' : ''}>
                 </div>
                 <span class="badge bg-primary badge-xs">${isPng ? 'Lossless' : file.quality + '%'}</span>
@@ -91,13 +94,23 @@ function renderFileList() {
             downloadSingle(file);
         };
         
-        const modeSwitch = div.querySelector('.file-mode-switch');
-        modeSwitch.onchange = async (e) => {
+        const btnAuto = div.querySelector('.file-mode-auto');
+        const btnManual = div.querySelector('.file-mode-manual');
+
+        btnAuto.onclick = async (e) => {
             e.stopPropagation();
-            const isPro = e.target.checked;
-            modeSwitch.disabled = true; // Previene click rapidi
-            await switchFileMode(file, isPro);
-            modeSwitch.disabled = false;
+            if (file.mode === 'simple') return;
+            btnAuto.disabled = true;
+            btnManual.disabled = true;
+            await switchFileMode(file, false); // isPro = false
+        };
+
+        btnManual.onclick = async (e) => {
+            e.stopPropagation();
+            if (file.mode === 'pro') return;
+            btnAuto.disabled = true;
+            btnManual.disabled = true;
+            await switchFileMode(file, true); // isPro = true
         };
 
         const formatSel = div.querySelector('.file-format');
@@ -112,7 +125,10 @@ function renderFileList() {
             file.simpleQuality = file.quality; // Aggiorna la memoria Simple
             div.querySelector('.badge').textContent = file.quality + '%';
         };
-        qualityRange.onchange = () => processFile(file); // Commit change on release
+        qualityRange.onchange = (e) => {
+            if (file.mode === 'pro') return;
+            processFile(file);
+        };
 
         els.fileListContainer.appendChild(div);
     });
@@ -131,15 +147,23 @@ function renderLayerPanel(file) {
     // Ricostruisce l'header del pannello con il bottone Merge
     panel.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="text-white small m-0">Compression Layers</h6>
-            <button id="btnMergeLayers" class="btn btn-primary btn-sm py-0" style="font-size: 0.75rem;" disabled>Merge</button>
+            <h6 class="text-white small m-0">Manual Mode Layers</h6>
+            <div class="d-flex gap-2">
+                <button id="btnResetLayers" class="btn btn-secondary btn-sm py-0" style="font-size: 0.75rem; width: 60px;" title="Reset layers to their original state">Reset</button>
+                <button id="btnMergeLayers" class="btn btn-primary btn-sm py-0" style="font-size: 0.75rem; width: 60px;" disabled>Merge</button>
+            </div>
         </div>
         <div id="layerList" class="d-flex flex-column gap-1"></div>
     `;
 
     const list = document.getElementById('layerList');
     const btnMerge = document.getElementById('btnMergeLayers');
+    const btnReset = document.getElementById('btnResetLayers');
 
+    btnReset.onclick = () => {
+        resetLayers(file);
+    };
+    
     // Gestione click Merge
     btnMerge.onclick = () => {
         const checkboxes = list.querySelectorAll('.layer-checkbox');

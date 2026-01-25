@@ -37,7 +37,7 @@ async function handleFiles(fileList) {
             proQuality: null,  // Memorizza la qualità calcolata Pro
             format: state.globalFormat,
             layers: [], // Stores layer data: { quality, blob, mask, pixelCount }
-            mode: 'pro', // Default all'avvio
+            mode: 'simple', // Default all'avvio
             compressedBlob: null,
             compressedUrl: null,
             compressedSize: 0,
@@ -48,12 +48,7 @@ async function handleFiles(fileList) {
         if (!state.selectedFileId) state.selectedFileId = fileEntry.id;
         
         // Process (Compress)
-        try {
-            await optimizeFile(fileEntry);
-        } catch (e) {
-            console.warn('Auto-optimization failed, falling back to default:', e);
-            await processFile(fileEntry);
-        }
+        await processFile(fileEntry);
     }
 
     if(els.fileInput) els.fileInput.value = ''; // Reset input
@@ -307,6 +302,18 @@ async function mergeLayers(fileEntry, indices) {
 
     await generateComposite(fileEntry);
     updateUI();
+}
+
+async function resetLayers(fileEntry) {
+    if (!fileEntry || fileEntry.mode !== 'pro') return;
+    
+    fileEntry.layers = []; // Clear existing layers
+    // Invalidate processed source to force re-analysis
+    if (fileEntry.processedSource) {
+        fileEntry.processedSource.close();
+        fileEntry.processedSource = null;
+    }
+    await optimizeFile(fileEntry); // Re-run the optimization to create fresh layers
 }
 
 async function switchFileMode(fileEntry, isPro) {
