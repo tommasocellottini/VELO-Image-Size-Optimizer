@@ -17,6 +17,8 @@ function updateUI() {
     }
 
     if(els.filesCountLabel) els.filesCountLabel.textContent = `SELECTED FILES (${state.files.length})`;
+    if (els.globalQuality) els.globalQuality.value = state.globalQuality;
+    if (els.globalQualityValue) els.globalQualityValue.textContent = state.globalQuality + '%';
     renderFileList();
     renderPreview();
 }

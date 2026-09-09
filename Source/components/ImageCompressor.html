@@ -53,9 +53,22 @@
                     /></h2>
             </div>
         </div>
+            <div class="mobile-toolbar px-3 pb-3">
+                <div class="quality-control">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="globalQuality" class="small text-white fw-bold">Global quality</label>
+                        <span id="globalQualityValue" class="badge bg-primary">75%</span>
+                    </div>
+                    <input type="range" id="globalQuality" class="form-range m-0" min="1" max="100" step="1" value="75" aria-label="Global quality">
+                </div>
+                <div class="mobile-actions mt-3">
+                    <button class="btn btn-green flex-grow-1" id="btnDownloadSelected" title="Download selected image">Download</button>
+                    <button class="btn btn-blue" id="btnAddImgMobile">Add images</button>
+                </div>
+            </div>
         <div class="row flex-grow-1 overflow-hidden m-0">
             <!-- Sidebar -->
-            <div class="col-3 velo-bg p-3 overflow-auto " style="height: 100%; overflow: hidden !important;">
+                <div class="col-3 velo-bg p-3 overflow-auto file-panel" style="height: 100%; overflow: hidden !important;">
                 <div class="d-flex justify-content-between align-items-center mb-3 h-30">
                     <button
                         class="btn btn-blue border-normal  btn-sm z-interactive w-80"
@@ -96,7 +109,7 @@
             </div>
             <!-- Preview Area -->
             <div
-                class="col-9 velo-bg p-0 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden">
+                class="col-9 velo-bg p-0 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden preview-panel">
                 <div
                     id="previewStage"
                     class="preview-stage d-none border-normal   "

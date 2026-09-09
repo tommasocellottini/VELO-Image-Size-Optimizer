@@ -4,6 +4,7 @@ const state = {
     files: [], // Array of file objects { id, name, originalFile, originalUrl, compressedBlob, compressedUrl, quality, format, size, compressedSize, savings }
     selectedFileId: null,
     globalFormat: 'jpeg',
+    globalQuality: 75,
     maxWidth: null, // Null means original size
     showingOriginal: false,
     zoom: { scale: 1, x: 0, y: 0, isDragging: false, startX: 0, startY: 0 },

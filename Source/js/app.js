@@ -11,7 +11,8 @@ const initApp = () => {
         'btnAbout', 'modalAbout', 'backdropAbout', 'btnCloseAbout',
         'modalPrivacy', 'backdropPrivacy', 'btnClosePrivacy', 'linkPrivacy',
         'btnSelectImages', 'btnAddImg', 'globalFormat', 'globalMaxWidth', 'btnClear', 'btnZip',
-        'btnShowOriginal', 'btnShowOptimized', 'btnResetZoom'
+        'btnShowOriginal', 'btnShowOptimized', 'btnResetZoom',
+        'globalQuality', 'globalQualityValue', 'btnDownloadSelected', 'btnAddImgMobile'
     ];
 
     ids.forEach(id => {
@@ -50,6 +51,7 @@ function setupEventListeners() {
     // File Input & Selection
     if (els.btnSelectImages) els.btnSelectImages.onclick = () => els.fileInput.click();
     if (els.btnAddImg) els.btnAddImg.onclick = () => els.fileInput.click();
+    if (els.btnAddImgMobile) els.btnAddImgMobile.onclick = () => els.fileInput.click();
     if (els.fileInput) els.fileInput.onchange = (e) => handleFiles(e.target.files);
 
     // Drag & Drop
@@ -73,6 +75,25 @@ function setupEventListeners() {
     // Global Actions
     if (els.btnClear) els.btnClear.onclick = clearAll;
     if (els.btnZip) els.btnZip.onclick = downloadZip;
+    if (els.btnDownloadSelected) els.btnDownloadSelected.onclick = () => {
+        const selectedFile = state.files.find(file => file.id === state.selectedFileId);
+        if (selectedFile) downloadSingle(selectedFile);
+    };
+    if (els.globalQuality) els.globalQuality.oninput = (e) => {
+        const quality = parseInt(e.target.value, 10);
+        state.globalQuality = quality;
+        if (els.globalQualityValue) els.globalQualityValue.textContent = quality + '%';
+        state.files.forEach(file => {
+            if (file.mode === 'simple' && file.format !== 'png') {
+                file.quality = quality;
+                file.simpleQuality = quality;
+            }
+        });
+    };
+    if (els.globalQuality) els.globalQuality.onchange = () => {
+        state.files.filter(file => file.mode === 'simple' && file.format !== 'png').forEach(file => processFile(file, false));
+        updateUI();
+    };
     if (els.globalFormat) els.globalFormat.onchange = (e) => {
         state.globalFormat = e.target.value;
         state.files.forEach(f => {
